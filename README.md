@@ -41,10 +41,10 @@
 1. GitHubで新しいリポジトリ `manabi-monster` を作成（Public）
 2. 「Add file」→「Upload files」でこのフォルダのファイルを全部ドラッグ＆ドロップ → Commit
 3. Settings → Pages → Branch を `main` / `/(root)` にして Save
-4. 1〜2分後 `https://<ユーザー名>.github.io/manabi-monster/` で開ける
+4. 1〜2分後 `https://abcdefgpaspas-dev.github.io/manabi-monster/` で開ける
 
 ## あそびかたブック
-`manual.html` が子ども向けの説明書。公開すると `https://<ユーザー名>.github.io/manabi-monster/manual.html` で開ける。
+`manual.html` が子ども向けの説明書。公開すると `https://abcdefgpaspas-dev.github.io/manabi-monster/manual.html` で開ける。
 ブラウザの印刷からA4に印刷して渡すこともできる。
 
 ## 3. スマホに入れる
