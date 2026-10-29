@@ -1,5 +1,11 @@
 {
   "rules": {
+    "trades": {
+      "$code": {
+        ".read": true,
+        ".write": true
+      }
+    },
     "rooms": {
       "$code": {
         ".read": true,

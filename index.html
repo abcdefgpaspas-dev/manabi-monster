@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px;font-family:system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
-<!-- Firebase（通信たいせん用） -->
+<!-- Firebase（ともだちとの こうかん・たいせん用） -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="config.js"></script>
@@ -22,374 +22,390 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
 <style>
-/* レイアウト：方眼ノートの上で遊ぶ、スマホ縦1カラムのゲーム画面 */
+/* レイアウト：方眼ノートの上に シール帳とガチャ。スマホ縦1カラム */
 :root{
-  --paper:#eef4f1; --grid:rgba(40,110,90,.10); --card:#ffffff; --ink:#1d2a30; --muted:#5a6d72;
+  --paper:#eef4f1; --grid:rgba(40,110,90,.10); --card:#ffffff; --ink:#1d2a30; --muted:#5a6d72; --line:#cfdcd6;
   --p5:#e8590c; --p5-soft:#fff0e6; --p3:#1971c2; --p3-soft:#e7f1fc;
-  --boss:#6741d9; --good:#2b8a3e; --bad:#c92a2a; --line:#cfdcd6; --hp:#f03e3e; --hp-bg:#f1d9d9;
-  --r1:#868e96; --r2:#2f9e44; --r3:#1c7ed6; --r4:#ae3ec9; --r5:#e8890c;
+  --boss:#6741d9; --good:#2b8a3e; --bad:#c92a2a; --coin:#f59f00; --coin-soft:#fff4d6;
+  --r1:#868e96; --r2:#2f9e44; --r3:#1c7ed6; --r4:#ae3ec9; --r5:#e8590c;
+  --hp:#f03e3e; --hp-bg:#f1d9d9;
   --lcd-bg:#b4c0a0; --lcd-ink:#28301f; --lcd-grid:rgba(180,192,160,.45); --lcd-hi:#ffffff;
   --display:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;
   --body:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#121c1a; --grid:rgba(120,200,170,.08); --card:#1b2826; --ink:#e7f0ec; --muted:#9fb3ad;
+  --paper:#121c1a; --grid:rgba(120,200,170,.08); --card:#1b2826; --ink:#e7f0ec; --muted:#9fb3ad; --line:#2d3e3a;
   --p5:#ff8a3d; --p5-soft:#3a2416; --p3:#4dabf7; --p3-soft:#14293d;
-  --boss:#9775fa; --good:#51cf66; --r1:#adb5bd; --r2:#69db7c; --r3:#74c0fc; --r4:#e599f7; --r5:#ffc078; --bad:#ff6b6b; --line:#2d3e3a; --hp:#ff6b6b; --hp-bg:#3a2222; color-scheme:dark}}
+  --boss:#9775fa; --good:#51cf66; --bad:#ff6b6b; --coin:#ffc53d; --coin-soft:#3a2f12;
+  --r1:#adb5bd; --r2:#69db7c; --r3:#74c0fc; --r4:#e599f7; --r5:#ffa94d;
+  --hp:#ff6b6b; --hp-bg:#43292b; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --paper:#121c1a; --grid:rgba(120,200,170,.08); --card:#1b2826; --ink:#e7f0ec; --muted:#9fb3ad;
+  --paper:#121c1a; --grid:rgba(120,200,170,.08); --card:#1b2826; --ink:#e7f0ec; --muted:#9fb3ad; --line:#2d3e3a;
   --p5:#ff8a3d; --p5-soft:#3a2416; --p3:#4dabf7; --p3-soft:#14293d;
-  --boss:#9775fa; --good:#51cf66; --r1:#adb5bd; --r2:#69db7c; --r3:#74c0fc; --r4:#e599f7; --r5:#ffc078; --bad:#ff6b6b; --line:#2d3e3a; --hp:#ff6b6b; --hp-bg:#3a2222; color-scheme:dark}
+  --boss:#9775fa; --good:#51cf66; --bad:#ff6b6b; --coin:#ffc53d; --coin-soft:#3a2f12;
+  --r1:#adb5bd; --r2:#69db7c; --r3:#74c0fc; --r4:#e599f7; --r5:#ffa94d;
+  --hp:#ff6b6b; --hp-bg:#43292b; color-scheme:dark}
 
 [hidden]{display:none!important}
 html,body{height:100%}
 body{background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:22px 22px;color:var(--ink);font-family:var(--body);font-size:16px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;
-  -webkit-tap-highlight-color:transparent}
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;-webkit-tap-highlight-color:transparent}
 .wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-h1,h2,.disp{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0}
+h1,h2,h3,.disp{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0}
+h2{font-size:1.4rem} h3{font-size:1.05rem}
 button{font-family:var(--body);font-weight:800;color:var(--ink);cursor:pointer;border:2px solid var(--ink);background:var(--card);border-radius:14px}
-button:focus-visible{outline:3px solid var(--boss);outline-offset:2px}
-button:active{transform:translateY(2px)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--boss);outline-offset:2px}
+button:active:not(:disabled){transform:translateY(2px)}
+button:disabled{opacity:.45;cursor:default}
 .btn{padding:14px 16px;font-size:1.05rem;box-shadow:0 4px 0 var(--ink)}
-.btn:active{box-shadow:0 1px 0 var(--ink)}
+.btn:active:not(:disabled){box-shadow:0 1px 0 var(--ink)}
+.btn.main{background:var(--boss);color:#fff;border-color:var(--ink)}
 .ghost{border-color:var(--line);box-shadow:none;font-size:.95rem;padding:10px 14px}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .muted{color:var(--muted)}
+.coin{display:inline-flex;align-items:center;gap:6px;background:var(--coin-soft);border:2px solid var(--coin);color:var(--ink);border-radius:999px;padding:4px 12px 4px 6px;font-weight:800;font-variant-numeric:tabular-nums}
+.coin i{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe066,#f59f00 70%);border:2px solid #b07000;display:inline-block;flex:none}
+.coin.pop{animation:pop .35s}
+@keyframes pop{50%{transform:scale(1.18)}}
 
 /* タイトル */
-.hero{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:8px}
-.hero h1{font-size:clamp(2rem,9vw,2.8rem);letter-spacing:.02em;line-height:1.15}
+.hero{text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:6px}
+.hero h1{font-size:clamp(2rem,9vw,2.8rem);line-height:1.15}
 .hero h1 span{color:var(--boss)}
-.hero-monsters{display:flex;gap:4px;justify-content:center}
-.names{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.names label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700}
-.names input{font-family:var(--body);font-size:1rem;font-weight:700;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
-.tag5{color:var(--p5)} .tag3{color:var(--p3)}
-.modes{display:grid;gap:12px}
-.mode{display:flex;align-items:center;gap:12px;text-align:left;padding:14px}
-.mode .disp{font-size:1.25rem}
-.mode small{display:block;font-weight:500;color:var(--muted);font-size:.85rem;margin-top:2px}
-.mode svg{flex:none}
+.hero-mons{display:flex;justify-content:center;margin-bottom:-6px}
+.users{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ucard{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;box-shadow:0 4px 0 var(--ink);text-align:center;min-width:0}
+.ucard .uname{font-family:var(--display);font-size:1.15rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ucard.u5{border-color:var(--p5)} .ucard.u5 .uname{color:var(--p5)}
+.ucard.u3{border-color:var(--p3)} .ucard.u3 .uname{color:var(--p3)}
+.ucard small{color:var(--muted);font-weight:700}
 
-/* バトル */
-.bossbox{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;overflow:hidden}
-.bossname{font-family:var(--display);font-size:1.1rem;color:var(--boss)}
-.hpbar{width:100%;height:14px;background:var(--hp-bg);border-radius:8px;overflow:hidden;border:2px solid var(--ink)}
-.hpbar i{display:block;height:100%;background:var(--hp);transition:width .4s ease}
-.hprow{width:100%;display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;font-variant-numeric:tabular-nums}
-.hearts{letter-spacing:2px;color:var(--hp)}
-.boss-svg{transition:transform .15s}
-.hit{animation:hit .4s}
-@keyframes hit{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px) rotate(-4deg)}75%{transform:translateX(10px) rotate(4deg)}}
-.float{position:absolute;top:40%;left:50%;transform:translateX(-50%);font-family:var(--display);font-size:2rem;color:var(--hp);pointer-events:none;animation:up .9s forwards}
-@keyframes up{to{transform:translate(-50%,-60px);opacity:0}}
-.turn{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:12px;font-weight:800}
-.turn.p5{background:var(--p5-soft);color:var(--p5);border:2px solid var(--p5)}
-.turn.p3{background:var(--p3-soft);color:var(--p3);border:2px solid var(--p3)}
+/* ホーム */
+.hhead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.hname{font-family:var(--display);font-size:1.4rem}
+.prog{display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:.85rem}
+.bar{height:12px;border-radius:8px;background:var(--line);overflow:hidden;border:2px solid var(--ink)}
+.bar i{display:block;height:100%;background:var(--boss)}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px 14px;box-shadow:0 4px 0 var(--ink)}
+.mbtn .disp{font-size:1.15rem}
+.mbtn small{font-weight:500;color:var(--muted);font-size:.8rem}
+.mbtn.study{grid-column:1/-1;flex-direction:row;justify-content:center;gap:12px;background:var(--coin-soft);border-color:var(--coin)}
+.mbtn.study .disp{font-size:1.3rem}
+
+/* 問題 */
 .qcard{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:18px 14px;text-align:center;display:flex;flex-direction:column;gap:6px}
 .qlabel{font-size:.85rem;color:var(--muted);font-weight:700}
-.qtext{font-size:clamp(1.4rem,6.5vw,2rem);font-weight:800;line-height:1.4;font-variant-numeric:tabular-nums;word-break:keep-all;overflow-wrap:anywhere}
+.qtext{font-size:clamp(1.4rem,6.5vw,2rem);font-weight:800;line-height:1.4;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .qtext.small{font-size:clamp(1.05rem,4.6vw,1.3rem)}
+.qtext.kanjiq{font-family:var(--display);font-weight:400;letter-spacing:.06em;font-size:clamp(2.4rem,13vw,3.4rem)}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.choice{min-height:64px;font-size:1.3rem;padding:8px;box-shadow:0 4px 0 var(--ink);font-variant-numeric:tabular-nums}
+.choice{min-height:64px;font-size:1.25rem;padding:8px;box-shadow:0 4px 0 var(--ink);font-variant-numeric:tabular-nums}
 .choice.ok{background:var(--good);color:#fff;border-color:var(--good)}
 .choice.ng{background:var(--bad);color:#fff;border-color:var(--bad)}
-.choice:disabled{cursor:default}
 .feedback{min-height:1.6em;text-align:center;font-weight:800}
 .feedback.ok{color:var(--good)} .feedback.ng{color:var(--bad)}
 .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;margin:0 .1em;font-size:.85em}
 .frac b{font-weight:800;padding:0 .15em}
 .frac b:first-child{border-bottom:2px solid currentColor;padding-bottom:2px;margin-bottom:2px}
-
-/* オーバーレイ */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-left,0px));z-index:20}
-.panel{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:20px;max-width:420px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
-.panel h2{font-size:1.6rem}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
-.stat{border-radius:12px;padding:10px;font-weight:700}
-.stat.p5{background:var(--p5-soft);color:var(--p5)} .stat.p3{background:var(--p3-soft);color:var(--p3)}
-.stat big{display:block;font-family:var(--display);font-size:1.8rem;font-variant-numeric:tabular-nums}
-
-/* 漢字 */
-.who{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.who button{padding:16px 8px;font-size:1.05rem;box-shadow:0 4px 0 var(--ink)}
-.who .b5{border-color:var(--p5);color:var(--p5)} .who .b3{border-color:var(--p3);color:var(--p3)}
 .progress{display:flex;gap:4px;justify-content:center}
-.progress i{width:18px;height:6px;border-radius:3px;background:var(--line)}
+.progress i{width:26px;height:6px;border-radius:3px;background:var(--line)}
 .progress i.ok{background:var(--good)} .progress i.ng{background:var(--bad)} .progress i.now{background:var(--ink)}
-.kword{font-family:var(--display);font-size:clamp(2.6rem,14vw,3.6rem);letter-spacing:.06em}
-.catch{display:flex;flex-direction:column;align-items:center;gap:2px}
 
-/* 図鑑 */
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tabs button{padding:10px;border-color:var(--line)}
+/* レア度 */
+.rar{display:inline-block;font-size:.72rem;font-weight:800;border:2px solid currentColor;border-radius:999px;padding:1px 8px;width:max-content;white-space:nowrap}
+.rar1{color:var(--r1)} .rar2{color:var(--r2)} .rar3{color:var(--r3)} .rar4{color:var(--r4)} .rar5{color:var(--r5)}
+.rarrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;font-size:.8rem}
+
+/* ガチャ */
+.machine-wrap{display:flex;justify-content:center;position:relative}
+#machine{width:min(240px,64vw);height:auto;overflow:visible}
+#machine.shake{animation:shake .9s}
+@keyframes shake{0%,100%{transform:rotate(0)}15%{transform:rotate(-3deg)}30%{transform:rotate(3deg)}45%{transform:rotate(-2deg)}60%{transform:rotate(2deg)}75%{transform:rotate(-1deg)}}
+#handle{transform-origin:100px 198px;transition:transform .8s cubic-bezier(.3,1.4,.5,1)}
+#handle.turn{transform:rotate(360deg)}
+.gbtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gbtns .btn{display:flex;flex-direction:column;align-items:center;gap:2px}
+.gbtns small{font-weight:700;font-size:.78rem}
+.caps{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;min-height:0}
+.cap{width:66px;height:66px;border-radius:50%;border:3px solid var(--ink);padding:0;
+  background:linear-gradient(var(--cc) 0 48%, var(--ink) 48% 52%, #fff 52%);animation:drop .6s cubic-bezier(.3,1.6,.5,1) both;box-shadow:0 4px 0 var(--ink)}
+.cap.c5{background:linear-gradient(transparent 0 48%, var(--ink) 48% 52%, #fff 52%),conic-gradient(#ff6b6b,#ffd43b,#69db7c,#4dabf7,#9775fa,#ff6b6b)}
+.cap.small{width:48px;height:48px}
+@keyframes drop{from{transform:translateY(-80px) scale(.6);opacity:0}}
+.cap.open{animation:capopen .35s forwards}
+@keyframes capopen{to{transform:scale(1.5);opacity:0}}
+.taphint{text-align:center;font-weight:800;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.4}}
+.flash{position:fixed;inset:0;background:#fff;z-index:30;pointer-events:none;animation:flash .6s forwards}
+.flash.rainbow{background:conic-gradient(from 0deg,#ff6b6b,#ffd43b,#69db7c,#4dabf7,#9775fa,#ff6b6b)}
+@keyframes flash{from{opacity:.95}to{opacity:0}}
+
+/* シール */
+.stk{position:relative;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;text-align:center}
+.stk.got{border:3px solid var(--rc);box-shadow:0 3px 0 var(--rc)}
+.stk.r5.got{border-color:transparent;background:linear-gradient(var(--card),var(--card)) padding-box,conic-gradient(#ff6b6b,#ffd43b,#69db7c,#4dabf7,#9775fa,#ff6b6b) border-box}
+.stk .no{font-size:.62rem;color:var(--muted);font-weight:800;font-variant-numeric:tabular-nums;align-self:flex-start;padding-left:4px}
+.stk .nm{font-weight:800;font-size:.8rem;line-height:1.2}
+.stk .st{font-size:.62rem;letter-spacing:1px;color:var(--rc)}
+.stk .sil{filter:brightness(0);opacity:.13}
+:root[data-theme="dark"] .stk .sil{filter:brightness(0) invert(1);opacity:.12}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .stk .sil{filter:brightness(0) invert(1);opacity:.12}}
+.stk .cnt{position:absolute;top:4px;right:4px;font-size:.7rem;font-weight:800;background:var(--ink);color:var(--card);border-radius:8px;padding:1px 6px;font-variant-numeric:tabular-nums}
+.stk .cnt.zero{background:var(--line);color:var(--muted)}
+.stk .new{position:absolute;top:-8px;left:-6px;font-size:.66rem;font-weight:800;background:var(--bad);color:#fff;border-radius:8px;padding:2px 6px;transform:rotate(-8deg)}
+.book{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:10px}
+button.stk{font-weight:inherit;cursor:pointer}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.tabs button{flex:none;padding:6px 10px;border-color:var(--line);font-size:.85rem;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.tabs button small{font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .tabs button[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 3px 0 var(--ink)}
-.dex{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
-.cell{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;min-width:0}
-.cell.got{border-color:var(--ink)}
-.cell .w{font-weight:800;font-size:1rem}
-.cell .r{font-size:.72rem;color:var(--muted)}
-.cell .q{font-family:var(--display);font-size:2rem;color:var(--line);height:64px;display:flex;align-items:center}
-.badge{position:absolute;top:4px;right:4px;font-size:.62rem;font-weight:800;background:var(--bad);color:#fff;border-radius:6px;padding:1px 5px}
-.dexcount{font-family:var(--display);font-size:1.1rem;font-variant-numeric:tabular-nums}
-/* 育成：携帯ゲーム機ふうの本体と液晶 */
-.eggs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.eggs button{padding:8px 4px;border-color:var(--line);display:flex;justify-content:center}
-.eggs button[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 4px 0 var(--ink)}
-.nameinput{font-family:var(--body);font-size:1.1rem;font-weight:800;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);text-align:center;width:100%;box-sizing:border-box}
+.pop{animation:popin .45s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes popin{from{transform:scale(.3);opacity:0}}
+
+/* こうかん */
+.slots{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.slot{background:var(--card);border:2px dashed var(--line);border-radius:16px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-height:190px;justify-content:center;min-width:0}
+.slot.filled{border-style:solid;border-color:var(--ink)}
+.slot .who{font-weight:800;font-size:.85rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .okb{font-size:.75rem;font-weight:800;color:#fff;background:var(--good);border-radius:999px;padding:2px 10px}
+.swap{font-family:var(--display);font-size:1.6rem;color:var(--boss)}
+.last1{font-size:.72rem;color:var(--bad);font-weight:800}
+.joinrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.nameinput{font-family:var(--body);font-size:1.1rem;font-weight:800;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);text-align:center;width:100%;box-sizing:border-box;min-width:0}
+.olcode{font-family:var(--display);font-size:3.2rem;letter-spacing:.2em;font-variant-numeric:tabular-nums;background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:6px 18px 6px 28px;align-self:center}
+
+/* そだてる：携帯ゲーム機ふうの本体と液晶 */
 .device{--dev:var(--boss);background:var(--dev);border:3px solid var(--ink);border-radius:26px 26px 44px 44px;padding:14px 14px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 0 var(--ink)}
 .device.p5{--dev:var(--p5)} .device.p3{--dev:var(--p3)}
 .dev-top{display:flex;justify-content:space-between;align-items:baseline;color:var(--lcd-hi);font-family:var(--display);font-size:1.1rem;padding:0 6px;gap:8px}
+.dev-top span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lcd{--cols:64;--rows:40;background:var(--lcd-bg);border:4px solid var(--lcd-ink);border-radius:10px;padding:6px;position:relative;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08)}
-.lcd canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+.lcd canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
 .lcd::after{content:"";position:absolute;inset:6px;pointer-events:none;
   background-image:linear-gradient(var(--lcd-grid) 1px,transparent 1px),linear-gradient(90deg,var(--lcd-grid) 1px,transparent 1px);
   background-size:calc(100% / var(--cols)) calc(100% / var(--rows))}
 .lcd-msg{position:absolute;left:10px;top:8px;font-weight:800;color:var(--lcd-ink);font-size:.85rem}
-.lcd-mini{--cols:32;--rows:32;width:56px;padding:3px;border-width:3px;border-radius:8px;flex:none}
-.lcd-mini::after{inset:3px}
+.evo-lcd{width:100%;box-sizing:border-box}
 .meters{background:var(--card);border-radius:14px;padding:8px 12px;display:grid;gap:6px;font-weight:800;font-size:.85rem}
-.meters>div{display:grid;grid-template-columns:4.5em 1fr;align-items:center;gap:8px}
+.meters>div{display:grid;grid-template-columns:4.8em 1fr;align-items:center;gap:8px}
 .pips{letter-spacing:3px;color:var(--hp);font-size:1.05rem}
 .dev-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .dev-btns button{border-radius:16px;padding:10px 4px;box-shadow:0 4px 0 var(--ink);display:flex;flex-direction:column;align-items:center;gap:2px}
 .dev-btns button:active{box-shadow:0 1px 0 var(--ink)}
-.dev-btns b{font-size:1.05rem}
-.dev-btns small{font-weight:500;font-size:.7rem;color:var(--muted)}
+.dev-btns b{font-size:1.02rem}
+.dev-btns small{font-weight:500;font-size:.68rem;color:var(--muted)}
 .partner{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .prow{display:flex;gap:12px;align-items:center}
 .prow>div{min-width:0;display:flex;flex-direction:column;gap:2px}
-.pname{font-family:var(--display);font-size:1.4rem}
-.lvl{font-weight:800;font-variant-numeric:tabular-nums}
+.pname{font-family:var(--display);font-size:1.4rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .expbar{width:100%;height:14px;background:var(--line);border-radius:8px;overflow:hidden;border:2px solid var(--ink)}
 .expbar i{display:block;height:100%;background:var(--good)}
 .stagerow{display:flex;gap:4px;flex-wrap:wrap}
 .stagerow span{font-size:.72rem;font-weight:800;padding:3px 8px;border-radius:999px;border:2px solid var(--line);color:var(--muted)}
 .stagerow span.on{border-color:var(--ink);color:var(--ink)}
 .stagerow span.now{background:var(--ink);color:var(--card);border-color:var(--ink)}
-.carestats{font-size:.85rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
-.tree{display:flex;flex-direction:column;gap:10px}
-.tree h3{margin:0;font-size:.95rem}
-.tree .dex{grid-template-columns:repeat(auto-fill,minmax(92px,1fr))}
-.tree .cell .r{text-align:center;line-height:1.3}
-.mini{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:6px 10px}
-.mini .expbar{height:10px}
-.mini-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:.85rem}
-.qtext.kanjiq{font-family:var(--display);font-weight:400;letter-spacing:.06em;font-size:clamp(2.4rem,13vw,3.4rem)}
-.evo-lcd{width:100%;box-sizing:border-box}
+.carestats{font-size:.8rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.chain{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;border-top:2px dashed var(--line);padding-top:8px}
+.chain span{display:flex;flex-direction:column;align-items:center;width:58px}
+.chain small{font-size:.62rem;font-weight:800;line-height:1.1;text-align:center}
+.chain b{color:var(--muted)}
 .danger{color:var(--bad)!important;border-color:var(--bad)!important}
-.vsdev{--dev:var(--boss)}
+/* たいせん */
+.hpbar{height:12px;border-radius:8px;background:var(--hp-bg);overflow:hidden;border:2px solid var(--ink)}
+.hpbar i{display:block;height:100%;background:var(--hp);transition:width .25s}
 .vsbars{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .vsb{background:var(--card);border-radius:12px;padding:6px 10px;display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:.85rem;min-width:0}
 .vsb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vsb.t5 span{color:var(--p5)} .vsb.t3 span{color:var(--p3)}
-.vsb .hpbar{height:12px}
 .vs-dmg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--display);font-size:1.8rem;color:var(--lcd-ink);opacity:0}
 .vs-dmg.show{animation:vsup .9s forwards}
 @keyframes vsup{from{opacity:1}to{transform:translateY(-24px);opacity:0}}
-.vsentry{display:flex;flex-direction:column;gap:6px;align-items:stretch}
-.rar{display:inline-block;font-size:.72rem;font-weight:800;color:var(--rc);border:2px solid var(--rc);border-radius:999px;padding:1px 8px;width:max-content}
-.stars{font-size:.7rem;letter-spacing:1px}
-.cell .no{font-size:.65rem;color:var(--muted);font-weight:800;font-variant-numeric:tabular-nums;align-self:flex-start;padding-left:4px}
-.dexhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
-.egglbl{display:block;font-size:.72rem;font-weight:700;color:var(--muted);text-align:center;line-height:1.3}
-.eggs button{flex-direction:column;align-items:center}
+.turn{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:8px 12px;font-weight:800;display:flex;justify-content:space-between;gap:8px;box-shadow:0 3px 0 var(--ink)}
+.turn.p5{border-color:var(--p5);color:var(--p5)} .turn.p3{border-color:var(--p3);color:var(--p3)}
+.turn.wait{border-style:dashed;border-color:var(--line);color:var(--muted);box-shadow:none}
+
+/* オーバーレイ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:20}
+.panel{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:18px;max-width:440px;width:100%;max-height:100%;overflow-y:auto;box-sizing:border-box;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.panel .book{width:100%;grid-template-columns:repeat(auto-fill,minmax(86px,1fr))}
+.bigstk{display:flex;flex-direction:column;align-items:center;gap:6px}
+.bigstk .nm{font-family:var(--display);font-size:1.6rem}
+.badge-new{font-family:var(--display);color:var(--bad);font-size:1.3rem;animation:popin .5s both}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--card);font-weight:800;padding:10px 18px;border-radius:999px;z-index:40;max-width:calc(100% - 32px);text-align:center;animation:popin .3s both}
+
+/* 設定 */
 .parent{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 14px}
 .parent summary{font-weight:800;cursor:pointer;font-size:.9rem}
-.parent[open]{display:flex;flex-direction:column;gap:8px}
+.parent[open]{display:flex;flex-direction:column;gap:10px}
 .unitlist{display:flex;flex-direction:column;gap:8px}
 .unitlist label{display:flex;gap:8px;align-items:center;font-weight:700;font-size:.92rem}
 .unitlist input{width:20px;height:20px;accent-color:var(--p3);flex:none}
-.joinrow{display:grid;grid-template-columns:1fr auto;gap:8px}
-.joinrow .btn{white-space:nowrap}
-.olcode{font-family:var(--display);font-size:3.4rem;letter-spacing:.2em;font-variant-numeric:tabular-nums;background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:6px 20px 6px 30px}
-.turn.wait{background:var(--card);color:var(--muted);border:2px dashed var(--line)}
-.who button.sel{box-shadow:0 4px 0 var(--ink);background:var(--card);outline:3px solid currentColor}
+.names2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.names2 label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700}
+.names2 input{font-family:var(--body);font-size:1rem;font-weight:700;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 
 <div class="wrap">
 
 <!-- ===== タイトル ===== -->
-<section id="sTitle">
-  <div class="wrap">
-    <div class="hero">
-      <div class="hero-monsters" id="heroMon"></div>
-      <h1>まなび<span>モンスター</span></h1>
-      <p class="muted" style="margin:0">けいさんと かんじで モンスターに いどもう</p>
-    </div>
-    <div class="names">
-      <label><span class="tag5">5ねんせい</span><input id="n5" value="おねえちゃん" maxlength="8"></label>
-      <label><span class="tag3">3ねんせい</span><input id="n3" value="いもうと" maxlength="8"></label>
-    </div>
-    <div class="modes">
-      <button class="btn mode" id="goBattle"><span id="iconBattle"></span><span><span class="disp">けいさんバトル</span><small>ふたりで こうたいに こたえて ボスを たおそう</small></span></button>
-      <button class="btn mode" id="goKanji"><span id="iconKanji"></span><span><span class="disp">かんじ モンスター</span><small>よみかたを あてて モンスターを つかまえよう</small></span></button>
-      <button class="btn mode" id="goGrow"><span id="iconGrow"></span><span><span class="disp">そだてる モンスター</span><small>おせわと べんきょうで しんか。ふたりで たいせんも</small></span></button>
-      <button class="btn mode" id="goDex"><span id="iconDex"></span><span><span class="disp">ずかん</span><small>かんじと モンスター 50しゅるいの きろく</small></span></button>
-    </div>
-    <details class="parent">
-      <summary>おうちの人へ：3年の しゅつだい はんい</summary>
-      <p class="muted" style="margin:0;font-size:.85rem">東書 3年2学期（はなまるスキル）の 単元です。いま学校で やっている 単元だけに しぼれます。</p>
-      <div id="unitList" class="unitlist"></div>
-    </details>
+<section id="sTitle"><div class="wrap">
+  <div class="hero">
+    <div class="hero-mons" id="heroMons"></div>
+    <h1>まなび<span>モンスター</span></h1>
+    <p class="muted" style="margin:0">べんきょうで コインを あつめて モンスターシールを ゲット！</p>
   </div>
-</section>
-
-<!-- ===== 計算バトル ===== -->
-<section id="sBattle" hidden>
-  <div class="wrap">
-    <div class="topbar"><button class="ghost" data-home>← もどる</button><span class="disp" id="stageLbl">ステージ 1</span></div>
-    <div class="bossbox" id="bossBox">
-      <div class="bossname" id="bossName"></div>
-      <div class="boss-svg" id="bossSvg"></div>
-      <div class="hpbar"><i id="hpFill" style="width:100%"></i></div>
-      <div class="hprow"><span>ボス HP <span id="hpTxt"></span></span><span>チーム <span class="hearts" id="hearts"></span></span></div>
+  <div class="users" id="users"></div>
+  <details class="parent">
+    <summary>おうちの人へ：せってい</summary>
+    <div class="names2">
+      <label><span style="color:var(--p5)">5ねんせいの なまえ</span><input id="n5" maxlength="8"></label>
+      <label><span style="color:var(--p3)">3ねんせいの なまえ</span><input id="n3" maxlength="8"></label>
     </div>
-    <div class="turn" id="turn"></div>
-    <div class="qcard"><div class="qlabel" id="qLabel"></div><div class="qtext" id="qText"></div></div>
-    <div class="choices" id="choices"></div>
-    <div class="feedback" id="fb"></div>
-  </div>
-</section>
+    <p class="muted" style="margin:0;font-size:.85rem">3年の しゅつだい はんい（東書 3年2学期・はなまるスキル）。いま学校で やっている 単元に しぼれます。</p>
+    <div id="unitList" class="unitlist"></div>
+  </details>
+</div></section>
 
-<!-- ===== 漢字モンスター ===== -->
-<section id="sKanji" hidden>
-  <div class="wrap">
-    <div class="topbar"><button class="ghost" data-home>← もどる</button><span class="disp" id="kWho"></span></div>
-    <div id="kPick">
-      <div class="wrap">
-        <h2 style="text-align:center">だれが ちょうせんする？</h2>
-        <div class="who"><button class="b5" id="k5"></button><button class="b3" id="k3"></button></div>
-        <p class="muted" style="text-align:center;margin:0;font-size:.9rem">1かい 10もん。まちがえた かんじは にげて、また でてくるよ。</p>
+<!-- ===== ホーム ===== -->
+<section id="sHome" hidden><div class="wrap">
+  <div class="hhead"><button class="ghost" data-go="title">← もどる</button><span class="coin" id="hCoin"></span></div>
+  <div class="hname" id="hName"></div>
+  <div class="prog"><span id="hProgTxt"></span><div class="bar"><i id="hProg"></i></div></div>
+  <div class="menu">
+    <button class="mbtn study" id="goStudy"><span id="icStudy"></span><span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span class="disp">べんきょうする</span><small>5もん とくと コインが もらえる</small></span></button>
+    <button class="mbtn" id="goGrow" style="grid-column:1/-1;flex-direction:row;justify-content:center;gap:12px"><span id="icGrow"></span><span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span class="disp">そだてる</span><small id="growSub"></small></span></button>
+    <button class="mbtn" id="goGacha"><span id="icGacha"></span><span class="disp">ガチャ</span><small>5コインで 1かい</small></button>
+    <button class="mbtn" id="goBook"><span id="icBook"></span><span class="disp">シールちょう</span><small id="bookSub"></small></button>
+    <button class="mbtn" id="goTrade" style="grid-column:1/-1;flex-direction:row;justify-content:center;gap:12px"><span id="icTrade"></span><span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px"><span class="disp">こうかん</span><small>ダブった シールを こうかんしよう</small></span></button>
+  </div>
+</div></section>
+
+<!-- ===== べんきょう ===== -->
+<section id="sStudy" hidden><div class="wrap">
+  <div class="topbar"><button class="ghost" data-go="home">← もどる</button><span class="coin" id="sCoin"></span></div>
+  <div class="progress" id="sProg"></div>
+  <div class="qcard"><div class="qlabel" id="sQLabel"></div><div class="qtext" id="sQText"></div></div>
+  <div class="choices" id="sChoices"></div>
+  <div class="feedback" id="sFb"></div>
+</div></section>
+
+<!-- ===== ガチャ ===== -->
+<section id="sGacha" hidden><div class="wrap">
+  <div class="topbar"><button class="ghost" data-go="home">← もどる</button><span class="coin" id="gCoin"></span></div>
+  <div class="machine-wrap"><svg id="machine" viewBox="0 0 200 250" aria-hidden="true"></svg></div>
+  <div class="caps" id="caps"></div>
+  <div class="taphint" id="tapHint" hidden>カプセルを タップして あけよう！</div>
+  <div class="gbtns">
+    <button class="btn main" id="pull1">1かい まわす<small>5コイン</small></button>
+    <button class="btn" id="pull10">10かい まわす<small>50コイン・スーパーレア以上 1まい かくてい</small></button>
+  </div>
+  <div class="rarrow" id="rates"></div>
+</div></section>
+
+<!-- ===== シールちょう ===== -->
+<section id="sBook" hidden><div class="wrap">
+  <div class="topbar"><button class="ghost" data-go="home">← もどる</button><span class="disp" id="bCount"></span></div>
+  <div class="tabs" id="bTabs"></div>
+  <div class="book" id="book"></div>
+</div></section>
+
+<!-- ===== こうかん ===== -->
+<section id="sTrade" hidden><div class="wrap">
+  <div class="topbar"><button class="ghost" id="tBack">← もどる</button><span class="disp">シール こうかん</span></div>
+  <div id="tMenu"><div class="wrap">
+    <button class="btn" id="tLocalBtn">きょうだいと こうかん<br><small class="muted">この スマホで</small></button>
+    <button class="btn" id="tOnlineBtn">ともだちと こうかん<br><small class="muted">べつの スマホと つうしん</small></button>
+    <p class="muted" id="tOnlineNote" style="margin:0;font-size:.85rem;text-align:center" hidden>ともだちとの こうかんは インターネット版（GitHub）で つかえるよ</p>
+  </div></div>
+  <div id="tLocal" hidden><div class="wrap">
+    <div class="slots">
+      <button class="slot" id="lsA"></button><span class="swap">⇄</span><button class="slot" id="lsB"></button>
+    </div>
+    <button class="btn main" id="lDo" disabled>こうかん する</button>
+    <p class="muted" style="margin:0;font-size:.85rem;text-align:center">わくを タップして、あげる シールを えらんでね</p>
+  </div></div>
+  <div id="tLobby" hidden><div class="wrap">
+    <button class="btn main" id="tCreate">へやを つくる</button>
+    <div class="joinrow"><input id="tCode" class="nameinput" inputmode="numeric" maxlength="4" placeholder="4けたの コード"><button class="btn" id="tJoin">はいる</button></div>
+    <p class="muted" style="margin:0;font-size:.85rem;text-align:center">ひとりが「へやを つくる」、もうひとりが その コードを いれてね</p>
+    <div class="feedback ng" id="tMsg"></div>
+  </div></div>
+  <div id="tWait" hidden><div class="wrap" style="text-align:center">
+    <h2>こうかんコード</h2><div class="olcode" id="tShow"></div>
+    <p style="margin:0">ともだちの スマホで この コードを いれてね</p><p class="muted" style="margin:0">まっています…</p>
+  </div></div>
+  <div id="tRoom" hidden><div class="wrap">
+    <div class="slots"><button class="slot" id="osMe"></button><span class="swap">⇄</span><div class="slot" id="osFr"></div></div>
+    <button class="btn main" id="oOk" disabled>これで OK！</button>
+    <div class="feedback" id="oMsg"></div>
+  </div></div>
+</div></section>
+
+<!-- ===== そだてる（あいぼう） ===== -->
+<section id="sGrow" hidden><div class="wrap">
+  <div class="topbar"><button class="ghost" data-go="home">← もどる</button><span class="coin" id="gwCoin"></span></div>
+  <div id="gNone" hidden><div class="wrap" style="text-align:center">
+    <h2>あいぼうを えらぼう</h2>
+    <div id="gNoneArt" style="display:flex;justify-content:center;gap:4px"></div>
+    <p class="muted" style="margin:0;font-size:.9rem">シールちょうの モンスターから 1ぴき えらぶと、いっしょに そだてられるよ。<br>べんきょうで けいけんちが たまって、Lv.8／18／30で <b>しんか</b>！<br>しんかには <b>ちゃんと おせわ できている</b>ことも ひつよう。かんたんには しんかしないから、できたら すごいよ。</p>
+    <button class="btn main" id="gPickBtn">あいぼうを えらぶ</button>
+    <p class="muted" id="gNoneNote" style="margin:0;font-size:.85rem" hidden>まだ シールを もっていないよ。まずは ガチャを まわそう！</p>
+  </div></div>
+  <div id="gHome" hidden><div class="wrap">
+    <div class="device" id="device">
+      <div class="dev-top"><span id="dName"></span><span id="dLv"></span></div>
+      <div class="lcd"><canvas id="lcd" width="64" height="40"></canvas><div class="lcd-msg" id="lcdMsg"></div></div>
+      <div class="meters">
+        <div><span>おなか</span><span class="pips" id="mHunger"></span></div>
+        <div><span>ごきげん</span><span class="pips" id="mHappy"></span></div>
+        <div><span>つぎのLv</span><div class="expbar"><i id="mExp"></i></div></div>
+      </div>
+      <div class="dev-btns">
+        <button id="aFeed"><b>ごはん</b><small>1コイン</small></button>
+        <button id="aPlay"><b>あそぶ</b><small>ごきげん+1</small></button>
+        <button id="aClean"><b>そうじ</b><small>うんちを ながす</small></button>
       </div>
     </div>
-    <div id="kPlay" hidden>
-      <div class="wrap">
-        <div class="progress" id="kProg"></div>
-        <div class="qcard">
-          <div class="qlabel">この ことばの よみかたは？</div>
-          <div class="kword" id="kWord"></div>
-        </div>
-        <div class="choices" id="kChoices"></div>
-        <div class="feedback" id="kFb"></div>
-      </div>
-    </div>
-  </div>
-</section>
+    <div class="partner" id="partner"></div>
+    <button class="btn main" id="gStudy">べんきょうして けいけんちを あげる</button>
+    <button class="btn" id="gVs">べつの スマホと たいせん</button>
+    <p class="muted" id="gVsNote" style="margin:0;font-size:.85rem;text-align:center" hidden>たいせんは インターネット版（GitHub）で つかえるよ</p>
+    <div class="topbar"><button class="ghost" id="gRename">なまえを かえる</button><button class="ghost" id="gChange">あいぼうを かえる</button></div>
+  </div></div>
+</div></section>
 
-<!-- ===== 図鑑 ===== -->
-<section id="sDex" hidden>
-  <div class="wrap">
-    <div class="topbar"><button class="ghost" data-home>← もどる</button><span class="dexcount" id="dexCount"></span></div>
-    <div class="tabs" style="grid-template-columns:repeat(3,1fr)"><button id="tM" aria-pressed="false">モンスター</button><button id="t5" aria-pressed="true">5ねん かんじ</button><button id="t3" aria-pressed="false">3ねん かんじ</button></div>
-    <div class="tree" id="monDex" hidden></div>
-    <div class="dex" id="dex"></div>
-  </div>
-</section>
-
-<!-- ===== 育成 ===== -->
-<section id="sGrow" hidden>
-  <div class="wrap">
-    <div class="topbar"><button class="ghost" data-home>← もどる</button><span class="disp" id="gWho"></span></div>
-    <div id="gPick"><div class="wrap">
-      <h2 style="text-align:center">だれの モンスター？</h2>
-      <div class="who"><button class="b5" id="g5"></button><button class="b3" id="g3"></button></div>
-      <p class="muted" style="text-align:center;margin:0;font-size:.9rem">ひとりに 1ぴき。ごはん（けいさん）と あそぶ（かんじ）で おせわしよう。そだてかたで しんかする すがたが かわるよ。</p>
-    </div></div>
-    <div id="gEgg" hidden><div class="wrap">
-      <h2 style="text-align:center">たまごを 1つ えらんでね</h2>
-      <div class="eggs" id="eggs"></div>
-      <label for="gName" class="qlabel" style="text-align:center">なまえを つけよう</label>
-      <input id="gName" class="nameinput" maxlength="8" placeholder="なまえ">
-      <button class="btn" id="gHatch">このこに きめた！</button>
-    </div></div>
-    <div id="gHome" hidden><div class="wrap">
-      <div class="device" id="device">
-        <div class="dev-top"><span id="dName"></span><span id="dLv"></span></div>
-        <div class="lcd"><canvas id="lcd" width="64" height="40"></canvas><div class="lcd-msg" id="lcdMsg"></div></div>
-        <div class="meters">
-          <div><span>おなか</span><span class="pips" id="mHunger"></span></div>
-          <div><span>ごきげん</span><span class="pips" id="mHappy"></span></div>
-          <div><span>EXP</span><div class="expbar"><i id="mExp"></i></div></div>
-        </div>
-        <div class="dev-btns">
-          <button id="aFeed"><b>ごはん</b><small>けいさん 3もん</small></button>
-          <button id="aPlay"><b>あそぶ</b><small>かんじ 3もん</small></button>
-          <button id="aClean"><b>そうじ</b><small>うんちを ながす</small></button>
-        </div>
-      </div>
-      <div class="partner" id="partner"></div>
-      <button class="ghost" id="gReset">たまごから やりなおす</button>
-    </div></div>
-    <div id="gPlay" hidden><div class="wrap">
-      <div class="mini">
-        <div class="lcd lcd-mini"><canvas id="miniLcd" width="32" height="32"></canvas></div>
-        <div class="mini-info"><span id="miniTxt"></span><div class="expbar"><i id="miniExp"></i></div></div>
-      </div>
-      <div class="progress" id="gProg"></div>
-      <div class="qcard"><div class="qlabel" id="gQLabel"></div><div class="qtext" id="gQText"></div></div>
-      <div class="choices" id="gChoices"></div>
-      <div class="feedback" id="gFb"></div>
-    </div></div>
-  </div>
-</section>
-<!-- ===== たいせん ===== -->
-<section id="sVs" hidden>
-  <div class="wrap">
-    <div class="topbar"><button class="ghost" id="vsBackBtn">← もどる</button><span class="disp">モンスター たいせん</span></div>
-    <div class="device vsdev">
-      <div class="lcd"><canvas id="vsLcd" width="64" height="40"></canvas><div class="vs-dmg" id="vsDmg"></div></div>
+<!-- ===== たいせん（べつの スマホと つうしん） ===== -->
+<section id="sVs" hidden><div class="wrap">
+  <div class="topbar"><button class="ghost" id="olBack">← もどる</button><span class="disp">たいせん</span></div>
+  <div id="olLobby"><div class="wrap">
+    <div class="partner" id="olMine"></div>
+    <button class="btn main" id="olCreate">へやを つくる</button>
+    <div class="joinrow"><input id="olCode" class="nameinput" inputmode="numeric" maxlength="4" placeholder="4けたの コード"><button class="btn" id="olJoin">はいる</button></div>
+    <p class="muted" style="margin:0;font-size:.85rem;text-align:center">ひとりが「へやを つくる」、もうひとりが その コードを いれてね</p>
+    <div class="feedback ng" id="olMsg"></div>
+  </div></div>
+  <div id="olWait" hidden><div class="wrap" style="align-items:center;text-align:center">
+    <h2>たいせんコード</h2><div class="olcode" id="olShow"></div>
+    <p style="margin:0">あいての スマホで この コードを いれてね</p><p class="muted" style="margin:0">まっています…</p>
+    <button class="ghost" id="olCancel">やめる</button>
+  </div></div>
+  <div id="olBattle" hidden><div class="wrap">
+    <div class="device">
+      <div class="lcd"><canvas id="olLcd" width="64" height="40"></canvas><div class="vs-dmg" id="olDmg"></div></div>
       <div class="vsbars">
-        <div class="vsb t5"><span id="vsN5"></span><div class="hpbar"><i id="vsH5"></i></div></div>
-        <div class="vsb t3"><span id="vsN3"></span><div class="hpbar"><i id="vsH3"></i></div></div>
+        <div class="vsb"><span id="olN1"></span><div class="hpbar"><i id="olH1"></i></div></div>
+        <div class="vsb"><span id="olN2"></span><div class="hpbar"><i id="olH2"></i></div></div>
       </div>
     </div>
-    <div class="turn" id="vsTurn"></div>
-    <div class="qcard"><div class="qlabel" id="vsQLabel"></div><div class="qtext" id="vsQText"></div></div>
-    <div class="choices" id="vsChoices"></div>
-    <div class="feedback" id="vsFb"></div>
-  </div>
-</section>
-<!-- ===== つうしん たいせん ===== -->
-<section id="sOnline" hidden>
-  <div class="wrap">
-    <div class="topbar"><button class="ghost" id="olBack">← もどる</button><span class="disp">つうしん たいせん</span></div>
-    <div id="olLobby"><div class="wrap">
-      <h2 style="text-align:center">どの モンスターで たたかう？</h2>
-      <div class="who" id="olWho"></div>
-      <button class="btn" id="olCreate">へやを つくる</button>
-      <div class="joinrow">
-        <input id="olCode" class="nameinput" inputmode="numeric" maxlength="4" placeholder="4けたの コード">
-        <button class="btn" id="olJoin">へやに はいる</button>
-      </div>
-      <p class="muted" style="margin:0;font-size:.85rem;text-align:center">ひとりが「へやを つくる」、もうひとりが その コードを いれてね</p>
-      <div class="feedback ng" id="olMsg"></div>
-    </div></div>
-    <div id="olWait" hidden><div class="wrap" style="align-items:center;text-align:center">
-      <h2>たいせんコード</h2>
-      <div class="olcode" id="olShow"></div>
-      <p style="margin:0">あいての スマホで この コードを いれてね</p>
-      <p class="muted" style="margin:0">まっています…</p>
-      <button class="ghost" id="olCancel">やめる</button>
-    </div></div>
-    <div id="olBattle" hidden><div class="wrap">
-      <div class="device vsdev">
-        <div class="lcd"><canvas id="olLcd" width="64" height="40"></canvas><div class="vs-dmg" id="olDmg"></div></div>
-        <div class="vsbars">
-          <div class="vsb"><span id="olN1"></span><div class="hpbar"><i id="olH1"></i></div></div>
-          <div class="vsb"><span id="olN2"></span><div class="hpbar"><i id="olH2"></i></div></div>
-        </div>
-      </div>
-      <div class="turn" id="olTurn"></div>
-      <div class="qcard"><div class="qlabel" id="olQLabel"></div><div class="qtext" id="olQText"></div></div>
-      <div class="choices" id="olChoices"></div>
-      <div class="feedback" id="olFb"></div>
-    </div></div>
-  </div>
-</section>
+    <div class="turn" id="olTurn"></div>
+    <div class="qcard"><div class="qlabel" id="olQLabel"></div><div class="qtext" id="olQText"></div></div>
+    <div class="choices" id="olChoices"></div>
+    <div class="feedback" id="olFb"></div>
+  </div></div>
+</div></section>
 </div>
 
 <div class="overlay" id="ov" hidden><div class="panel" id="ovPanel"></div></div>
@@ -447,26 +463,6 @@ function beep(freqs, dur=0.12, type="triangle"){
 }
 const sOK=()=>beep([660,880,1100]), sNG=()=>beep([300,200],.18,"square"), sWin=()=>beep([523,659,784,1046],.15);
 
-// ===================== モンスター生成（シードから毎回同じ姿） =====================
-function monster(seed, size=96, label=""){
-  const h=hash(String(seed)), hue=h%360, hue2=(hue+40)%360;
-  const body=`hsl(${hue} 70% 62%)`, belly=`hsl(${hue} 80% 86%)`, dark=`hsl(${hue} 45% 28%)`, acc=`hsl(${hue2} 80% 58%)`;
-  const shape=(h>>3)%3, eyes=((h>>5)%3)+1, horn=(h>>7)%3, mouth=(h>>9)%2;
-  let b;
-  if (shape===0) b=`<ellipse cx="50" cy="58" rx="36" ry="32" fill="${body}" stroke="${dark}" stroke-width="3"/>`;
-  else if (shape===1) b=`<path d="M14 88 Q12 30 50 24 Q88 30 86 88 Q78 80 70 88 Q60 80 50 88 Q40 80 30 88 Q22 80 14 88Z" fill="${body}" stroke="${dark}" stroke-width="3"/>`;
-  else b=`<rect x="16" y="28" width="68" height="62" rx="22" fill="${body}" stroke="${dark}" stroke-width="3"/>`;
-  let hornSvg="";
-  if (horn===0) hornSvg=`<path d="M30 34 L24 12 L40 28Z M70 34 L76 12 L60 28Z" fill="${acc}" stroke="${dark}" stroke-width="2.5"/>`;
-  else if (horn===1) hornSvg=`<circle cx="26" cy="26" r="9" fill="${acc}" stroke="${dark}" stroke-width="2.5"/><circle cx="74" cy="26" r="9" fill="${acc}" stroke="${dark}" stroke-width="2.5"/>`;
-  else hornSvg=`<path d="M50 26 Q52 8 62 6" fill="none" stroke="${dark}" stroke-width="3"/><circle cx="62" cy="6" r="5" fill="${acc}" stroke="${dark}" stroke-width="2"/>`;
-  const ex = eyes===1?[50]:eyes===2?[38,62]:[32,50,68];
-  const eyeSvg = ex.map(x=>`<circle cx="${x}" cy="48" r="${eyes===1?11:7}" fill="#fff" stroke="${dark}" stroke-width="2.5"/><circle cx="${x+1.5}" cy="49" r="${eyes===1?5:3.4}" fill="${dark}"/>`).join("");
-  const m = mouth ? `<path d="M40 66 Q50 76 60 66" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round"/>`
-                  : `<path d="M40 64 L60 64 L56 72 L44 72Z" fill="${dark}"/><path d="M44 64 L46 68 L48 64Z M52 64 L54 68 L56 64Z" fill="#fff"/>`;
-  const lab = label ? `<ellipse cx="50" cy="82" rx="20" ry="9" fill="${belly}"/><text x="50" y="86" text-anchor="middle" font-size="11" font-weight="800" fill="${dark}" font-family="sans-serif">${label}</text>` : "";
-  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">${hornSvg}${b}${eyeSvg}${m}${lab}</svg>`;
-}
 
 // ===================== 問題生成：3年（東書3年2学期の単元に対応） =====================
 const tenths=v=>(v/10).toFixed(1).replace(/\.0$/,"");   // 23 → "2.3"、20 → "2"
@@ -576,115 +572,8 @@ const GEN5 = [
 function units3On(){ const on=UNITS3.filter(u=>(save.units3||UNITS3.filter(x=>x.def).map(x=>x.id)).includes(u.id)); return on.length?on:UNITS3.filter(u=>u.def); }
 const gen = g => g===5 ? pick(GEN5)() : pick(pick(units3On()).gens)();
 
-// ===================== 画面切り替え =====================
-const screens=["sTitle","sBattle","sKanji","sDex","sGrow","sVs","sOnline"];
-function show(id){ screens.forEach(s=>$(s).hidden = s!==id); $("ov").hidden=true; window.scrollTo(0,0); }
-document.querySelectorAll("[data-home]").forEach(b=>b.onclick=()=>{ clearTimeout(timer); show("sTitle"); });
-const names = () => ({5: $("n5").value.trim()||"5ねんせい", 3: $("n3").value.trim()||"3ねんせい"});
-["n5","n3"].forEach(id=>$(id).addEventListener("change",()=>{ save.names=names(); persist(); }));
-if (save.names){ $("n5").value=save.names[5]; $("n3").value=save.names[3]; }
 
-$("heroMon").innerHTML = monster("a1",64)+monster("boss2",80)+monster("z9",64);
-$("iconBattle").innerHTML = monster("boss1",52);
-$("iconKanji").innerHTML = monster("桜",52,"桜");
-$("iconDex").innerHTML = monster("dex",52);
-
-function overlay(html){ $("ovPanel").innerHTML=html; $("ov").hidden=false; }
-
-// ===================== 計算バトル =====================
-const BOSSES=["ケイサンゴン","ブンスウドラ","ワリアイキング"];
-let B=null, timer=null;
-$("goBattle").onclick=()=>{ beep([440]); startBattle(); };
-
-function startBattle(){
-  B={stage:1, hearts:5, turn:3, combo:0, stats:{5:{ok:0,ng:0},3:{ok:0,ng:0}}};
-  setupStage(); show("sBattle"); nextQ();
-}
-function setupStage(){
-  B.max = 60 + B.stage*30; B.hp = B.max;
-  $("stageLbl").textContent = `ステージ ${B.stage} / 3`;
-  $("bossName").textContent = BOSSES[B.stage-1];
-  $("bossSvg").innerHTML = monster("boss"+B.stage, 130);
-  drawHP();
-}
-function drawHP(){
-  $("hpFill").style.width = Math.max(0,B.hp/B.max*100)+"%";
-  $("hpTxt").textContent = `${Math.max(0,B.hp)} / ${B.max}`;
-  $("hearts").textContent = "♥".repeat(B.hearts) + "♡".repeat(5-B.hearts);
-}
-function nextQ(){
-  const g=B.turn, n=names();
-  B.q = gen(g); B.t0 = Date.now(); B.lock=false;
-  $("turn").className = "turn p"+g;
-  $("turn").innerHTML = `<span>${n[g]} の ばん</span><span>${g}ねんの もんだい</span>`;
-  $("qLabel").textContent = B.q.label;
-  $("qText").innerHTML = fmt(B.q.q);
-  $("qText").classList.toggle("small", !!B.q.small);
-  $("fb").textContent=""; $("fb").className="feedback";
-  $("choices").innerHTML = "";
-  B.q.ch.forEach(c=>{
-    const b=document.createElement("button"); b.className="choice"; b.innerHTML=fmt(c);
-    b.onclick=()=>answer(c,b); $("choices").appendChild(b);
-  });
-}
-function answer(c, btn){
-  if (B.lock) return; B.lock=true;
-  const ok = String(c)===String(B.q.a), g=B.turn, sec=(Date.now()-B.t0)/1000;
-  document.querySelectorAll("#choices .choice").forEach(b=>{ b.disabled=true; if (b.innerHTML===fmt(B.q.a)) b.classList.add("ok"); });
-  if (ok){
-    B.combo++; B.stats[g].ok++;
-    const dmg = 10 + (sec<8?5:0) + Math.min(B.combo-1,5)*2;
-    B.hp -= dmg; sOK();
-    const box=$("bossSvg"); box.classList.remove("hit"); void box.offsetWidth; box.classList.add("hit");
-    const f=document.createElement("div"); f.className="float"; f.textContent="-"+dmg; $("bossBox").appendChild(f); setTimeout(()=>f.remove(),900);
-    $("fb").className="feedback ok";
-    $("fb").textContent = sec<8 ? `せいかい！ はやわざ ボーナス` : "せいかい！";
-    if (B.combo>=2) $("fb").textContent += ` ${B.combo}れんぞく！`;
-  } else {
-    B.combo=0; B.stats[g].ng++; B.hearts--; sNG();
-    btn.classList.add("ng");
-    $("fb").className="feedback ng";
-    $("fb").innerHTML = `ざんねん… こたえは ${fmt(B.q.a)}`;
-  }
-  drawHP();
-  timer = setTimeout(()=>{
-    if (B.hp<=0) return stageClear();
-    if (B.hearts<=0) return gameOver();
-    B.turn = B.turn===3 ? 5 : 3; nextQ();
-  }, ok?1000:2200);
-}
-function statsHTML(){
-  const n=names(), s=B.stats;
-  return `<div class="stats"><div class="stat p5">${n[5]}<big>${s[5].ok}</big>せいかい</div><div class="stat p3">${n[3]}<big>${s[3].ok}</big>せいかい</div></div>`;
-}
-function stageClear(){
-  sWin();
-  if (B.stage>=3){
-    overlay(`${monster("crown",90)}<h2>ぜんぶ クリア！</h2><p style="margin:0">ふたりの きょうりょくで ボスを ぜんぶ たおした！</p>${statsHTML()}
-      <button class="btn" onclick="startBattle()">もういちど</button><button class="ghost" onclick="show('sTitle')">タイトルへ</button>`);
-  } else {
-    overlay(`${monster("boss"+B.stage,90)}<h2>ステージ ${B.stage} クリア！</h2><p style="margin:0">つぎは ${BOSSES[B.stage]} が あらわれた</p>${statsHTML()}
-      <button class="btn" id="nextStage">つぎの ステージへ</button>`);
-    $("nextStage").onclick=()=>{ B.stage++; B.hearts=Math.min(5,B.hearts+1); setupStage(); $("ov").hidden=true; B.turn = B.turn===3?5:3; nextQ(); };
-  }
-}
-function gameOver(){
-  overlay(`${monster("boss"+B.stage,90)}<h2>まけちゃった…</h2><p style="margin:0">ステージ ${B.stage} の ${BOSSES[B.stage-1]} は のこり HP ${B.hp}</p>${statsHTML()}
-    <button class="btn" onclick="startBattle()">もういちど ちょうせん</button><button class="ghost" onclick="show('sTitle')">タイトルへ</button>`);
-}
-
-// ===================== 漢字モンスター =====================
-let K=null;
-$("goKanji").onclick=()=>{
-  beep([440]); const n=names();
-  $("k5").innerHTML=`${n[5]}<br><small>5ねんの かんじ</small>`;
-  $("k3").innerHTML=`${n[3]}<br><small>3ねんの かんじ</small>`;
-  $("kWho").textContent=""; $("kPick").hidden=false; $("kPlay").hidden=true; show("sKanji");
-};
-$("k5").onclick=()=>startKanji(5);
-$("k3").onclick=()=>startKanji(3);
 const kid=(g,w)=>g+":"+w;
-
 // まちがえた漢字ほど出やすくする（重みつき抽選）
 function pickKanji(g, used){
   const pool = KANJI[g].filter(([w])=>!used.has(w));
@@ -693,397 +582,7 @@ function pickKanji(g, used){
   for (let i=0;i<pool.length;i++){ r-=weights[i]; if (r<=0) return pool[i]; }
   return pool[pool.length-1];
 }
-function startKanji(g){
-  K={g, i:0, res:[], used:new Set(), got:[]};
-  $("kWho").textContent = names()[g];
-  $("kPick").hidden=true; $("kPlay").hidden=false; nextK();
-}
-function nextK(){
-  const [w,r]=pickKanji(K.g,K.used); K.used.add(w); K.cur=[w,r]; K.lock=false;
-  $("kProg").innerHTML = Array.from({length:10},(_,i)=>`<i class="${i<K.i?(K.res[i]?"ok":"ng"):i===K.i?"now":""}"></i>`).join("");
-  $("kWord").textContent=w; $("kFb").innerHTML=""; $("kFb").className="feedback";
-  const others = shuffle(KANJI[K.g].filter(x=>x[1]!==r).map(x=>x[1]));
-  const ch = shuffle([r, ...others.slice(0,3)]);
-  $("kChoices").innerHTML="";
-  ch.forEach(c=>{ const b=document.createElement("button"); b.className="choice"; b.style.fontSize="1.1rem"; b.textContent=c; b.onclick=()=>answerK(c,b); $("kChoices").appendChild(b); });
-}
-function answerK(c,btn){
-  if (K.lock) return; K.lock=true;
-  const [w,r]=K.cur, id=kid(K.g,w), ok=c===r;
-  document.querySelectorAll("#kChoices .choice").forEach(b=>{ b.disabled=true; if (b.textContent===r) b.classList.add("ok"); });
-  if (ok){
-    sOK(); const first=!save.caught[id];
-    save.caught[id]=true; if (save.miss[id]) save.miss[id]=Math.max(0,save.miss[id]-1);
-    if (first) K.got.push(w);
-    $("kFb").className="feedback ok";
-    $("kFb").innerHTML = `<div class="catch">${monster(id,72,w.length<=2?w:"")}<span>${first?"モンスターを つかまえた！":"せいかい！"}</span></div>`;
-  } else {
-    sNG(); btn.classList.add("ng"); save.miss[id]=(save.miss[id]||0)+1;
-    $("kFb").className="feedback ng"; $("kFb").textContent=`にげられた… 「${w}」は「${r}」`;
-  }
-  persist(); K.res.push(ok); K.i++;
-  timer=setTimeout(()=>{ K.i<10 ? nextK() : endKanji(); }, ok?1300:2300);
-}
-function endKanji(){
-  sWin(); const okN=K.res.filter(Boolean).length;
-  const gotHTML = K.got.length ? `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px">${K.got.map(w=>monster(kid(K.g,w),56)).join("")}</div><p style="margin:0">あたらしく ${K.got.length}ひき つかまえた！</p>` : `<p style="margin:0" class="muted">あたらしい モンスターは いなかった</p>`;
-  overlay(`<h2>${okN} / 10 せいかい</h2>${gotHTML}
-    <button class="btn" onclick="startKanji(${K.g})">もういちど</button>
-    <button class="ghost" onclick="openDex(${K.g})">ずかんを みる</button>`);
-}
 
-// ===================== 図鑑 =====================
-let dexG=5;
-$("goDex").onclick=()=>{ beep([440]); openDex(5); };
-$("t5").onclick=()=>openDex(5); $("t3").onclick=()=>openDex(3);
-function openDex(g){
-  dexG=g; show("sDex"); $("monDex").hidden=true; $("dex").hidden=false; $("tM").setAttribute("aria-pressed",false);
-  $("t5").setAttribute("aria-pressed", g===5); $("t3").setAttribute("aria-pressed", g===3);
-  const list=KANJI[g], n=list.filter(([w])=>save.caught[kid(g,w)]).length;
-  $("dexCount").textContent=`${n} / ${list.length} ひき`;
-  $("dex").innerHTML = list.map(([w,r])=>{
-    const id=kid(g,w), got=save.caught[id], miss=save.miss[id]||0;
-    return got ? `<div class="cell got">${monster(id,64)}<span class="w">${w}</span><span class="r">${r}</span></div>`
-               : `<div class="cell">${miss?'<span class="badge">にげた</span>':""}<span class="q">？</span><span class="w muted">？？</span><span class="r">まだ</span></div>`;
-  }).join("");
-}
-
-// ===================== そだてる モンスター（たまごっち・デジモン風） =====================
-// 進化段階：Lvがここに届くと次の姿へ。どの姿になるかは「そだてかた」で分岐する
-const STAGES=[{n:"たまご",lv:1},{n:"ベビー",lv:2},{n:"こども",lv:5},{n:"おとな",lv:10},{n:"でんせつ",lv:15}];
-// ---- 5つの けいとう（たまごの種類）----
-const FAMS=[
-  {n:"ほのお", hue:14,  acc:"hsl(45 95% 55%)"},
-  {n:"みず",   hue:200, acc:"hsl(185 85% 72%)"},
-  {n:"くさ",   hue:105, acc:"hsl(330 75% 72%)"},
-  {n:"でんき", hue:46,  acc:"hsl(222 75% 50%)"},
-  {n:"ほし",   hue:268, acc:"hsl(50 95% 60%)"},   // レアたまご
-];
-// ---- レア度 ----
-const RAR=[null,{n:"ふつう",v:"--r1"},{n:"レア",v:"--r2"},{n:"スーパーレア",v:"--r3"},{n:"ウルトラレア",v:"--r4"},{n:"レジェンド",v:"--r5"}];
-const starTxt=r=>"★".repeat(r)+"☆".repeat(5-r);
-// ---- 全50種のモンスター [段階, けいとう, 分岐, なまえ, レア度] ----
-const DEX=[
-  // ベビー（たまごの けいとうで決まる）
-  [1,0,0,"ヒノコ",1],[1,1,0,"シズクン",1],[1,2,0,"メブキン",1],[1,3,0,"ピリッチ",1],[1,4,0,"キラボシ",2],
-  // こども（せいかい率で分岐）
-  [2,0,0,"ホムラッチ",3],[2,0,1,"モエモン",2],[2,1,0,"アクアン",3],[2,1,1,"チャプリン",2],
-  [2,2,0,"ハッパード",3],[2,2,1,"ツボミン",2],[2,3,0,"ライトン",3],[2,3,1,"ビリビー",2],
-  [2,4,0,"ステラン",4],[2,4,1,"ホシマル",3],
-  // おとな（おせわの しかたで分岐）
-  [3,0,0,"カエンドラ",3],[3,0,1,"ヒバナバード",3],[3,0,2,"フレアナイト",4],[3,0,3,"ケムリン",1],
-  [3,1,0,"ナミドラ",3],[3,1,1,"スイレイバード",3],[3,1,2,"アクアナイト",4],[3,1,3,"ドロンボ",1],
-  [3,2,0,"モリドラ",3],[3,2,1,"コノハバード",3],[3,2,2,"グリンナイト",4],[3,2,3,"カレハン",1],
-  [3,3,0,"イナズマドラ",3],[3,3,1,"ライチョウガ",3],[3,3,2,"ボルトナイト",4],[3,3,3,"デンチギレ",1],
-  [3,4,0,"ギンガドラ",4],[3,4,1,"ミカヅキバード",4],[3,4,2,"コスモナイト",4],[3,4,3,"ネボスケボシ",2],
-  // でんせつ（さいごの せいせきで分岐）
-  [4,0,0,"プロミネンス",5],[4,0,1,"バーンキング",4],[4,0,2,"ガンバリオン",3],
-  [4,1,0,"オケアノス",5],[4,1,1,"タイダルキング",4],[4,1,2,"ザブーン",3],
-  [4,2,0,"セコイアーク",5],[4,2,1,"フォレストキング",4],[4,2,2,"ドッシリボク",3],
-  [4,3,0,"テンペスター",5],[4,3,1,"サンダーキング",4],[4,3,2,"デンデンマル",3],
-  [4,4,0,"キラメキング",5],[4,4,1,"ノヴァルナ",4],[4,4,2,"ナガレボシン",3],
-].map(([st,fam,br,name,rar],i)=>({no:i+1,st,fam,br,name,rar}));
-const HINT={2:["せいかい率 85%いじょう","のんびり そだつ"],
-            3:["ごはん（けいさん）おおめ","あそぶ（かんじ）おおめ","バランスよく おせわ","おせわを わすれがち"],
-            4:["せいかい率90%＋はやわざ","せいかい率 80%いじょう","こつこつ がんばる"]};
-const entry=(fam,st,br)=>DEX.find(d=>d.st===st&&d.fam===fam&&d.br===br);
-const stageOf=lv=>{ let s=0; STAGES.forEach((x,i)=>{ if(lv>=x.lv) s=i; }); return s; };
-const needExp=lv=>20+lv*10;
-const SET=3, TICK=4*3600e3;          // 1セット3問／4時間ごとにおなか・ごきげんが減る
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const pips=v=>"♥".repeat(v)+"♡".repeat(4-v);
-save.grow=save.grow||{}; save.seen=save.seen||{};
-let G=null, resetArm=false, frame=0;
-
-function norm(g){
-  save.grow[g]=Object.assign({lv:1,exp:0,ok:0,tries:0,fast:0,calc:0,kanji:0,hunger:3,happy:3,poop:0,last:Date.now(),neglect:0,forms:{}}, save.grow[g]);
-  const m=save.grow[g];
-  if (m.fam===undefined){   // 旧データの引っ越し
-    m.fam=hash(String(m.seed||"x"))%4; m.forms={};
-    for (let s=2;s<=stageOf(m.lv);s++) m.forms[s]=decideForm(m,s);
-  }
-  for (let s=1;s<=stageOf(m.lv);s++) save.seen[entry(m.fam,s,brOf(m,s)).name]=true;
-  return m;
-}
-// 分岐進化のルール
-function decideForm(m,st){
-  const acc=m.tries ? m.ok/m.tries : 0, fastR=m.fast/(m.ok||1);
-  if (st===2) return acc>=0.85 ? 0 : 1;
-  if (st===3){ if (m.neglect>=5) return 3; return m.calc>m.kanji*1.3 ? 0 : m.kanji>m.calc*1.3 ? 1 : 2; }
-  if (st===4) return acc>=0.9 && fastR>=0.5 ? 0 : acc>=0.8 ? 1 : 2;
-  return 0;
-}
-function gainExp(m,n){ let up=false; m.exp+=n; while(m.exp>=needExp(m.lv)){ m.exp-=needExp(m.lv); m.lv++; up=true; } return up; }
-function applyEvo(m,st0){
-  const st=stageOf(m.lv), out=[];
-  for (let s=st0+1; s<=st; s++){ if (s>=2) m.forms[s]=decideForm(m,s); const e=entry(m.fam,s,brOf(m,s)); save.seen[e.name]=true; out.push(e); }
-  return out;
-}
-// 時間がたつと おなか・ごきげんが減り、うんちが出る（たまごっち風）
-function decay(m){
-  const n=Math.min(6, Math.floor((Date.now()-m.last)/TICK));
-  if (n<=0) return;
-  for (let i=0;i<n;i++){
-    if (m.hunger===0) m.neglect++;
-    m.hunger=Math.max(0,m.hunger-1);
-    m.happy=Math.max(0,m.happy-(m.poop?2:1));
-    if (i%2===1) m.poop=Math.min(3,m.poop+1);
-  }
-  m.last+=n*TICK; persist();
-}
-
-// ---- カラーの姿（SVG）。けいとう×段階×分岐で 50種の見た目を組み立てる ----
-function motif(fam,x,y,s,dark,acc){
-  const k=`stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"`;
-  if (fam===0) return `<path d="M${x} ${y+10*s} Q${x-9*s} ${y+2*s} ${x-3*s} ${y-8*s} Q${x-1*s} ${y-2*s} ${x+2*s} ${y-13*s} Q${x+11*s} ${y} ${x} ${y+10*s}Z" fill="${acc}" ${k}/><path d="M${x} ${y+7*s} Q${x-4*s} ${y+2*s} ${x} ${y-3*s} Q${x+4*s} ${y+2*s} ${x} ${y+7*s}Z" fill="hsl(14 90% 55%)"/>`;
-  if (fam===1) return `<path d="M${x} ${y-11*s} Q${x+9*s} ${y+2*s} ${x} ${y+9*s} Q${x-9*s} ${y+2*s} ${x} ${y-11*s}Z" fill="${acc}" ${k}/><circle cx="${x-2*s}" cy="${y+2*s}" r="${2*s}" fill="#fff"/>`;
-  if (fam===2) return `<path d="M${x} ${y+9*s} L${x} ${y-2*s}" stroke="${dark}" stroke-width="2.5"/><ellipse cx="${x-5*s}" cy="${y-4*s}" rx="${4*s}" ry="${8*s}" transform="rotate(-40 ${x-5*s} ${y-4*s})" fill="hsl(120 60% 42%)" ${k}/><ellipse cx="${x+5*s}" cy="${y-4*s}" rx="${4*s}" ry="${8*s}" transform="rotate(40 ${x+5*s} ${y-4*s})" fill="hsl(120 60% 42%)" ${k}/>`;
-  if (fam===3) return `<path d="M${x-1*s} ${y-12*s} L${x+7*s} ${y-12*s} L${x+2*s} ${y-3*s} L${x+8*s} ${y-3*s} L${x-5*s} ${y+11*s} L${x-1*s} ${y+1*s} L${x-7*s} ${y+1*s}Z" fill="${acc}" ${k}/>`;
-  let p=""; for (let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=(i%2?4.5:11)*s; p+=`${i?"L":"M"}${(x+r*Math.cos(a)).toFixed(1)} ${(y+r*Math.sin(a)).toFixed(1)} `; }
-  return `<path d="${p}Z" fill="${acc}" ${k}/>`;
-}
-function mon(fam, st, br=0, size=140){
-  const F=FAMS[fam], e=st>0?entry(fam,st,br):null, rar=e?e.rar:1;
-  const hue=(F.hue+(st>=2?br*12-12:0)+360)%360, sat=fam===3?85:72;
-  const body=`hsl(${hue} ${sat}% 60%)`, belly=`hsl(${hue} 85% 88%)`, dark=`hsl(${hue} 45% 24%)`, acc=F.acc;
-  const W=inner=>`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true">${inner}</svg>`;
-  const K=`stroke="${dark}" stroke-width="3" stroke-linejoin="round"`;
-  if (st===0){
-    let deco=`<circle cx="46" cy="50" r="9" fill="${body}"/><circle cx="72" cy="72" r="11" fill="${body}"/><circle cx="52" cy="92" r="7" fill="${body}"/>`;
-    deco+=motif(fam,60,66,1.5,dark,acc);
-    if (fam===4) deco+=motif(4,40,40,0.5,dark,acc)+motif(4,82,90,0.45,dark,acc);
-    return W(`${fam===4?`<circle cx="60" cy="64" r="54" fill="${acc}" opacity=".25"/>`:""}<ellipse cx="60" cy="64" rx="34" ry="44" fill="${belly}" stroke="${dark}" stroke-width="4"/>${deco}`);
-  }
-  const lazy=st===3&&br===3;
-  const R=[0,24,30,35,38][st], cx=60, cy=st===1?66:64, rx=lazy?R+8:(fam===3?R-2:R), ry=R*0.92, top=cy-ry;
-  let s="";
-  // レア度が高いほど オーラとキラキラ
-  if (rar>=5) s+=`<circle cx="60" cy="62" r="57" fill="${acc}" opacity=".22"/>`;
-  if (rar>=4) [[14,20],[106,26],[10,94],[108,98]].forEach(([x,y])=>s+=`<path d="M${x} ${y-6} L${x+2} ${y-2} L${x+6} ${y} L${x+2} ${y+2} L${x} ${y+6} L${x-2} ${y+2} L${x-6} ${y} L${x-2} ${y-2}Z" fill="hsl(48 95% 58%)"/>`);
-  // しっぽ（けいとうごと）
-  if (st>=2){
-    if (fam===0) s+=`<path d="M${cx+R-6} ${cy+R*0.5} Q${cx+R+16} ${cy+R*0.5} ${cx+R+12} ${cy-2}" fill="none" stroke="${dark}" stroke-width="4"/>`+motif(0,cx+R+12,cy-8,0.6,dark,acc);
-    if (fam===3) s+=`<path d="M${cx+R-6} ${cy+R*0.4} L${cx+R+10} ${cy+R*0.3} L${cx+R+4} ${cy+R*0.05} L${cx+R+18} ${cy-R*0.3}" fill="none" stroke="${dark}" stroke-width="5" stroke-linejoin="round"/>`;
-    if (fam===1) s+=`<path d="M${cx-R-2} ${cy} L${cx-R-14} ${cy-10} L${cx-R-10} ${cy+10}Z M${cx+R+2} ${cy} L${cx+R+14} ${cy-10} L${cx+R+10} ${cy+10}Z" fill="${acc}" ${K}/>`;
-  }
-  // つばさ
-  const wing = st===3 ? (lazy?null:["dragon","feather","small"][br]) : st===4 ? ["dragon","feather","small"][br] : null;
-  if (wing){
-    const L=cx-R+6, Rr=cx+R-6, big=st===4&&br===0?8:0;
-    if (wing==="dragon") s+=`<path d="M${L} ${cy-8} L${4-big/2} ${cy-40-big} L${14} ${cy-10} L${2} ${cy-4} L${16} ${cy+6} L${L+2} ${cy+12}Z" fill="${acc}" ${K}/><path d="M${Rr} ${cy-8} L${116+big/2} ${cy-40-big} L106 ${cy-10} L118 ${cy-4} L104 ${cy+6} L${Rr-2} ${cy+12}Z" fill="${acc}" ${K}/>`;
-    else if (wing==="feather") s+=`<ellipse cx="${cx-R-4}" cy="${cy-4}" rx="13" ry="24" transform="rotate(-28 ${cx-R-4} ${cy-4})" fill="${acc}" ${K}/><ellipse cx="${cx+R+4}" cy="${cy-4}" rx="13" ry="24" transform="rotate(28 ${cx+R+4} ${cy-4})" fill="${acc}" ${K}/>`;
-    else s+=`<path d="M${L} ${cy-6} Q14 ${cy-30} 12 ${cy+2} Q24 ${cy} ${L+2} ${cy+8}Z" fill="${acc}" ${K}/><path d="M${Rr} ${cy-6} Q106 ${cy-30} 108 ${cy+2} Q96 ${cy} ${Rr-2} ${cy+8}Z" fill="${acc}" ${K}/>`;
-  }
-  // ツノ（こどもの「せいかい率」ルート、おとなの ドラゴン型）
-  if ((st===2&&br===0) || (st>=3&&br===0&&!lazy)){
-    const a=R*0.55;
-    s+=`<path d="M${cx-a-6} ${top+10} L${cx-a-2} ${top-12-st*2} L${cx-a+10} ${top+4}Z M${cx+a+6} ${top+10} L${cx+a+2} ${top-12-st*2} L${cx+a-10} ${top+4}Z" fill="${body}" ${K}/>`;
-  }
-  // 足
-  if (st>=2) s+=`<ellipse cx="${cx-R*0.45}" cy="${cy+ry-2}" rx="10" ry="6" fill="${body}" ${K}/><ellipse cx="${cx+R*0.45}" cy="${cy+ry-2}" rx="10" ry="6" fill="${body}" ${K}/>`;
-  // からだ（でんきは四角め）
-  s+= fam===3 ? `<rect x="${cx-rx}" y="${cy-ry}" width="${rx*2}" height="${ry*2}" rx="${R*0.55}" fill="${body}" stroke="${dark}" stroke-width="4"/>`
-              : `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${body}" stroke="${dark}" stroke-width="4"/>`;
-  s+=`<ellipse cx="${cx}" cy="${cy+R*0.32}" rx="${rx*0.58}" ry="${R*0.48}" fill="${belly}"/>`;
-  if (fam===2 && st>=3) [[cx-R*0.6,cy+R*0.1],[cx+R*0.62,cy+R*0.25],[cx+R*0.2,cy-R*0.55]].forEach(([x,y])=>s+=`<circle cx="${x}" cy="${y}" r="4" fill="${acc}" stroke="${dark}" stroke-width="1.5"/>`);
-  // あたまの モチーフ
-  const ms=st===1?0.55:0.75+st*0.18;
-  if (!(st===3&&br===2)) s+=motif(fam,cx+(fam===2?0:2),top-6*ms+ (st===1?4:0),ms,dark,acc);
-  // 目
-  const er=st===1?8:st>=3?6.5:7, ex=R*0.36, ey=cy-R*0.22;
-  if (lazy) s+=[cx-ex,cx+ex].map(x=>`<path d="M${x-7} ${ey} Q${x} ${ey+5} ${x+7} ${ey}" fill="none" stroke="${dark}" stroke-width="3.5" stroke-linecap="round"/>`).join("");
-  else s+=[cx-ex,cx+ex].map(x=>`<circle cx="${x}" cy="${ey}" r="${er}" fill="#fff" stroke="${dark}" stroke-width="3"/><circle cx="${x+1.5}" cy="${ey+1}" r="${er*0.55}" fill="${dark}"/><circle cx="${x+3}" cy="${ey-2}" r="${er*0.18}" fill="#fff"/>`).join("");
-  if (st<=2 || lazy) s+=`<ellipse cx="${cx-ex-4}" cy="${ey+er+5}" rx="5" ry="3" fill="hsl(350 80% 75%)" opacity=".8"/><ellipse cx="${cx+ex+4}" cy="${ey+er+5}" rx="5" ry="3" fill="hsl(350 80% 75%)" opacity=".8"/>`;
-  // くち（とり型は くちばし）
-  const my=ey+er+6;
-  if (wing==="feather") s+=`<path d="M${cx-6} ${my-2} L${cx+6} ${my-2} L${cx} ${my+7}Z" fill="hsl(40 95% 55%)" stroke="${dark}" stroke-width="2"/>`;
-  else if (st>=3 && !lazy) s+=`<path d="M${cx-9} ${my} Q${cx} ${my+9} ${cx+9} ${my}" fill="${dark}"/><path d="M${cx-6} ${my+0.5} L${cx-4} ${my+4} L${cx-2} ${my+1}Z M${cx+2} ${my+1} L${cx+4} ${my+4} L${cx+6} ${my+0.5}Z" fill="#fff"/>`;
-  else s+=`<path d="M${cx-6} ${my} Q${cx} ${my+6} ${cx+6} ${my}" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round"/>`;
-  // ナイト型の かぶと
-  if (st===3&&br===2) s+=`<path d="M${cx-rx+2} ${cy-R*0.32} Q${cx-rx+2} ${top-4} ${cx} ${top-4} Q${cx+rx-2} ${top-4} ${cx+rx-2} ${cy-R*0.32}Z" fill="hsl(210 12% 72%)" ${K}/>`+motif(fam,cx,top-10,0.8,dark,acc);
-  // ベビーの たまごのから
-  if (st===1) s+=`<path d="M30 92 L38 84 L46 92 L54 84 L62 92 L70 84 L78 92 L86 84 L90 92 Q90 114 60 114 Q30 114 30 92Z" fill="${belly}" stroke="${dark}" stroke-width="4" stroke-linejoin="round"/>`;
-  // ほしけいの わっか
-  if (fam===4 && st>=3) s+=`<ellipse cx="${cx}" cy="${top-16}" rx="16" ry="4" fill="none" stroke="hsl(48 95% 58%)" stroke-width="3"/>`;
-  // でんせつの おうかん／はちまき
-  if (st===4 && br<=1) s+=`<path d="M${cx-16} ${top+2} L${cx-16} ${top-14} L${cx-8} ${top-6} L${cx} ${top-18} L${cx+8} ${top-6} L${cx+16} ${top-14} L${cx+16} ${top+2}Z" fill="hsl(46 95% 55%)" ${K}/>`;
-  if (st===4 && br===2) s+=`<rect x="${cx-rx+4}" y="${top+6}" width="${(rx-4)*2}" height="8" rx="3" fill="hsl(0 80% 55%)" stroke="${dark}" stroke-width="2.5"/><path d="M${cx+rx-4} ${top+10} L${cx+rx+14} ${top+2} L${cx+rx+12} ${top+16}Z" fill="hsl(0 80% 55%)" stroke="${dark}" stroke-width="2.5"/>`;
-  return W(s);
-}
-const brOf=(m,st)=> st<=1 ? 0 : (m.forms[st] ?? 0);
-const monOf=(m,st,size)=>mon(m.fam,st,brOf(m,st),size);
-const sprOf=(m,st,size=32)=>sprite(m.fam,st,brOf(m,st),size);
-const entryOf=(m,st)=>st===0?{name:"タマゴ",rar:0}:entry(m.fam,st,brOf(m,st));
-const rarChip=r=>r?`<span class="rar" style="--rc:var(${RAR[r].v})">${starTxt(r)} ${RAR[r].n}</span>`:"";
-
-// ---- 50種の図鑑 ----
-function renderMonDex(el){
-  const seen=DEX.filter(d=>save.seen[d.name]).length;
-  let h=`<div class="dexhead"><span class="dexcount">${seen} / ${DEX.length} しゅるい</span><span class="muted" style="font-size:.8rem">★が おおいほど レア</span></div>`;
-  for (let st=1; st<=4; st++){
-    h+=`<h3>${STAGES[st].n}</h3><div class="dex">`+DEX.filter(d=>d.st===st).map(d=>{
-      const got=save.seen[d.name], hint=st===1?`${FAMS[d.fam].n}の たまご`:`${FAMS[d.fam].n}けい・${HINT[st][d.br]}`;
-      return `<div class="cell ${got?"got":""}" style="${got?`border-color:var(${RAR[d.rar].v})`:""}">
-        <span class="no">No.${String(d.no).padStart(2,"0")}</span>
-        ${got?mon(d.fam,d.st,d.br,64):'<span class="q">？</span>'}
-        <span class="w ${got?"":"muted"}">${got?d.name:"？？？"}</span>
-        <span class="stars" style="color:var(${RAR[d.rar].v})">${starTxt(d.rar)}</span>
-        <span class="r">${got?RAR[d.rar].n:hint}</span></div>`;
-    }).join("")+`</div>`;
-  }
-  el.innerHTML=h;
-}
-
-// ---- ドット絵エンジン：SVGを小さく描いて液晶の3色に減色する ----
-const LCDC={bg:"#b4c0a0", mid:"#6b7a5a", dark:"#28301f"};
-const spCache={};
-function sprite(fam,st,br,size=32){
-  const key=[fam,st,br,size].join("|");
-  if (spCache[key]) return spCache[key];
-  return spCache[key]=new Promise(res=>{
-    const img=new Image();
-    img.onload=()=>{
-      const c=document.createElement("canvas"); c.width=c.height=size;
-      const x=c.getContext("2d"); x.drawImage(img,0,0,size,size);
-      try{
-        const d=x.getImageData(0,0,size,size).data, out=new Uint8Array(size*size);
-        for (let i=0;i<size*size;i++){
-          if (d[i*4+3]<100) continue;
-          const l=(.3*d[i*4]+.59*d[i*4+1]+.11*d[i*4+2])/255;
-          out[i]= l<.42 ? 2 : l<.8 ? 1 : 3;   // 2=濃い 1=中間 3=明るい
-        }
-        res({size,out});
-      }catch(e){ res({size,img}); }   // 減色できない環境ではそのまま描く
-    };
-    img.onerror=()=>res(null);
-    img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(mon(fam,st,br,120));
-  });
-}
-function drawSp(ctx,sp,x0,y0,{flip=false,inv=false,fall=0}={}){
-  if (!sp) return;
-  if (sp.img){ ctx.drawImage(sp.img,x0,y0+fall,sp.size,sp.size); return; }
-  const n=sp.size;
-  for (let y=0;y<n-fall;y++) for (let x=0;x<n;x++){
-    const v=sp.out[y*n+x]; if (!v) continue;
-    let c = v===2?LCDC.dark : v===1?LCDC.mid : LCDC.bg;
-    if (inv) c = v===2?LCDC.bg : v===3?LCDC.dark : LCDC.mid;
-    ctx.fillStyle=c; ctx.fillRect(x0+(flip?n-1-x:x), y0+y+fall, 1, 1);
-  }
-}
-function drawBits(ctx,bits,x0,y0,col){ ctx.fillStyle=col; bits.forEach((row,y)=>[...row].forEach((ch,x)=>{ if (ch==="#") ctx.fillRect(x0+x,y0+y,1,1); })); }
-const POOP=["..#...",".##...","####..",".####.","######"];
-const HEART=[".#.#.","#####","#####",".###.","..#.."];
-function clearLcd(ctx,w,h,dark){ ctx.fillStyle=dark?LCDC.dark:LCDC.bg; ctx.fillRect(0,0,w,h); }
-
-// ---- 画面 ----
-$("iconGrow").innerHTML = mon(0,3,0,52);
-function gView(id){ ["gPick","gEgg","gHome","gPlay"].forEach(x=>$(x).hidden = x!==id); }
-function openPick(){
-  const n=names();
-  const lv=g=>save.grow[g] ? `<br><small>${esc(save.grow[g].name)} Lv.${save.grow[g].lv}</small>` : `<br><small>たまごを えらぶ</small>`;
-  $("g5").innerHTML=esc(n[5])+lv(5); $("g3").innerHTML=esc(n[3])+lv(3);
-  $("gWho").textContent=""; gView("gPick"); show("sGrow");
-}
-$("goGrow").onclick=()=>{ beep([440]); openPick(); };
-$("g5").onclick=()=>openGrow(5);
-$("g3").onclick=()=>openGrow(3);
-function openGrow(g){ G={g}; $("gWho").textContent=names()[g]; save.grow[g] ? growHome() : showEggs(); }
-
-function showEggs(){
-  // たまごは3つ。ふつうは ほのお・みず・くさ・でんき から、たまに レアな ほしの たまご
-  const pool=shuffle([0,1,2,3]); G.eggs=pool.slice(0,3);
-  if (Math.random()<0.15) G.eggs[rnd(0,2)]=4;
-  G.sel=0; $("gName").value=""; renderEggs(); gView("gEgg");
-}
-function renderEggs(){
-  $("eggs").innerHTML="";
-  G.eggs.forEach((fam,i)=>{
-    const b=document.createElement("button");
-    b.setAttribute("aria-pressed", i===G.sel);
-    b.innerHTML=mon(fam,0,0,80)+`<small class="egglbl">${FAMS[fam].n}の たまご${fam===4?"<br><b style='color:var(--r4)'>★レア</b>":""}</small>`;
-    b.onclick=()=>{ G.sel=i; beep(fam===4?[880,1175]:[520]); renderEggs(); };
-    $("eggs").appendChild(b);
-  });
-}
-$("gHatch").onclick=()=>{
-  const name=$("gName").value.trim() || pick(["モコ","ピピ","ルル","ポン","キラ"]);
-  save.grow[G.g]={fam:G.eggs[G.sel], name, last:Date.now()}; norm(G.g);
-  persist(); sWin(); growHome();
-};
-
-function stageRow(st){ return `<div class="stagerow">${STAGES.map((s,i)=>`<span class="${i<st?"on":i===st?"now":""}">${s.n}</span>`).join("")}</div>`; }
-function growHome(){
-  const m=norm(G.g); decay(m);
-  const st=stageOf(m.lv), nx=STAGES[st+1], e=entryOf(m,st);
-  $("device").className="device p"+G.g;
-  $("dName").textContent=m.name; $("dLv").textContent="Lv."+m.lv;
-  $("mHunger").textContent=pips(m.hunger); $("mHappy").textContent=pips(m.happy);
-  $("mExp").style.width=(m.exp/needExp(m.lv)*100)+"%";
-  const acc=m.tries?Math.round(m.ok/m.tries*100):0;
-  $("partner").innerHTML=`
-    <div class="prow">${monOf(m,st,84)}
-      <div><span class="pname">${e.name}</span>${rarChip(e.rar)}<span class="lvl">${STAGES[st].n} ・ ${esc(m.name)} ・ Lv.${m.lv}</span>
-      <span class="carestats">せいかい率 ${acc}% ・ ごはん ${m.calc} ・ あそび ${m.kanji}</span></div></div>
-    ${stageRow(st)}
-    <div class="muted" style="font-size:.85rem;font-weight:700">${st===0?"ごはんか あそぶで たまごが かえるよ":nx?`Lv.${nx.lv}で しんか！ そだてかたで すがたが かわるよ（あと ${needExp(m.lv)-m.exp} EXPで Lv.${m.lv+1}）`:"でんせつの すがたに なった！"}</div>
-    <button class="ghost" id="gTreeBtn">モンスター ずかん（50しゅるい）</button>
-    <div class="tree" id="gTree" hidden></div>`;
-  $("gTreeBtn").onclick=()=>{ const t=$("gTree"); t.hidden=!t.hidden; if(!t.hidden) renderTree(); };
-  resetArm=false; $("gReset").textContent="たまごから やりなおす"; $("gReset").classList.remove("danger");
-  gView("gHome"); refreshSprite();
-}
-function renderTree(){ renderMonDex($("gTree")); }
-$("gReset").onclick=()=>{
-  if (!resetArm){ resetArm=true; $("gReset").textContent="ほんとうに？ もういちど おすと リセット"; $("gReset").classList.add("danger"); return; }
-  delete save.grow[G.g]; persist(); showEggs();
-};
-
-// ---- 液晶アニメーション（左右にうろうろ） ----
-let lcdSp=null;
-function refreshSprite(){ const m=save.grow[G.g]; sprOf(m,stageOf(m.lv)).then(sp=>{ lcdSp=sp; drawLcd(); }); }
-function lcdSay(t){ G.msg=t; G.msgUntil=Date.now()+1800; drawLcd(); }
-function drawLcd(){
-  if (!G || !save.grow[G.g]) return;
-  const ctx=$("lcd").getContext("2d"), m=save.grow[G.g], st=stageOf(m.lv);
-  clearLcd(ctx,64,40);
-  const sad=st>0 && (m.hunger===0 || m.happy===0);
-  let x=16, y=4, flip=false;
-  if (st===0) x=16+(frame%2?1:-1);
-  else if (!sad){
-    const path=[16,20,24,28,24,20,16,12,8,4,8,12], i=frame%path.length;
-    x=path[i]; flip=path[(i+1)%path.length]<x; y=4+(frame%2);
-  }
-  drawSp(ctx,lcdSp,x,y,{flip});
-  for (let i=0;i<m.poop;i++) drawBits(ctx,POOP,58-i*7,35,LCDC.dark);
-  if (!sad && st>0 && m.happy>=4 && frame%4<2) drawBits(ctx,HEART,Math.min(58,x+28),y,LCDC.dark);
-  $("lcdMsg").textContent = (G.msg && Date.now()<G.msgUntil) ? G.msg
-    : st===0 ? "" : m.hunger===0 ? "おなか ペコペコ…" : m.happy===0 ? "つまらないよ…" : m.poop>=2 ? "くさい…" : "";
-}
-setInterval(()=>{ if ($("sGrow").hidden || $("gHome").hidden) return; frame++; drawLcd(); }, 650);
-
-// ---- おせわ（ごはん＝計算／あそぶ＝漢字／そうじ） ----
-$("aFeed").onclick=()=>startSet("feed");
-$("aPlay").onclick=()=>startSet("play");
-$("aClean").onclick=()=>{
-  const m=save.grow[G.g];
-  if (m.poop){ m.poop=0; m.happy=Math.min(4,m.happy+1); beep([880,660,440],.08); persist(); growHome(); lcdSay("ピカピカ！"); }
-  else { beep([520]); lcdSay("もう きれいだよ"); }
-};
-function startSet(kind){
-  const m=save.grow[G.g];
-  Object.assign(G,{kind,i:0,res:[],gain:0,usedK:new Set(),st0:stageOf(m.lv),lv0:m.lv});
-  $("ov").hidden=true; gView("gPlay"); nextG();
-}
-function drawMini(pop){
-  const m=save.grow[G.g];
-  $("miniTxt").textContent=`${G.kind==="feed"?"ごはんタイム":"あそびタイム"}　${m.name} Lv.${m.lv}`;
-  $("miniExp").style.width=(m.exp/needExp(m.lv)*100)+"%";
-  sprOf(m,G.st0).then(sp=>{
-    const ctx=$("miniLcd").getContext("2d"); clearLcd(ctx,32,32);
-    drawSp(ctx,sp,0,pop?-2:0);
-    if (pop) setTimeout(()=>{ clearLcd(ctx,32,32); drawSp(ctx,sp,0,0); },250);
-  });
-}
 function kanjiQ(g,used){
   const [w,r]=pickKanji(g,used); used.add(w);
   const others=shuffle(KANJI[g].filter(x=>x[1]!==r).map(x=>x[1]));
@@ -1108,37 +607,806 @@ function kanjiBook(g,q,ok){
   else save.miss[id]=(save.miss[id]||0)+1;
 }
 
-const GIDS={label:"gQLabel",text:"gQText",fb:"gFb",ch:"gChoices"};
-function nextG(){
-  G.lock=false; G.t0=Date.now();
-  G.q = G.kind==="play" ? kanjiQ(G.g,G.usedK) : gen(G.g);
-  drawMini(false);
-  $("gProg").innerHTML=Array.from({length:SET},(_,i)=>`<i class="${i<G.i?(G.res[i]?"ok":"ng"):i===G.i?"now":""}"></i>`).join("");
-  renderQ(G.q, GIDS, answerG);
+
+// ===================== モンスター 300種（10ぞくせい × 30しゅるい） =====================
+const ELEMS=[
+  {n:"ほのお", p:"メラ", body:"hsl(8 78% 62%)",   belly:"hsl(30 95% 88%)",  dark:"hsl(8 55% 25%)",    acc:"hsl(45 95% 55%)"},
+  {n:"みず",   p:"アワ", body:"hsl(205 75% 62%)", belly:"hsl(195 90% 90%)", dark:"hsl(215 55% 25%)",  acc:"hsl(185 85% 72%)"},
+  {n:"くさ",   p:"モリ", body:"hsl(105 50% 55%)", belly:"hsl(80 70% 88%)",  dark:"hsl(120 45% 20%)",  acc:"hsl(330 75% 75%)"},
+  {n:"でんき", p:"ビリ", body:"hsl(48 92% 58%)",  belly:"hsl(50 100% 90%)", dark:"hsl(35 60% 22%)",   acc:"hsl(222 75% 52%)"},
+  {n:"こおり", p:"ヒエ", body:"hsl(192 65% 80%)", belly:"hsl(190 80% 95%)", dark:"hsl(205 50% 30%)",  acc:"hsl(200 90% 55%)"},
+  {n:"いわ",   p:"ゴロ", body:"hsl(28 22% 58%)",  belly:"hsl(35 30% 85%)",  dark:"hsl(25 25% 22%)",   acc:"hsl(28 18% 40%)"},
+  {n:"かぜ",   p:"フワ", body:"hsl(158 50% 66%)", belly:"hsl(150 60% 92%)", dark:"hsl(165 45% 22%)",  acc:"hsl(170 60% 40%)"},
+  {n:"ひかり", p:"キラ", body:"hsl(50 100% 82%)", belly:"hsl(0 0% 100%)",   dark:"hsl(40 55% 30%)",   acc:"hsl(45 100% 52%)", rare:1},
+  {n:"やみ",   p:"ヤミ", body:"hsl(268 35% 40%)", belly:"hsl(270 40% 72%)", dark:"hsl(268 45% 12%)",  acc:"hsl(300 75% 68%)", rare:1},
+  {n:"ほし",   p:"ホシ", body:"hsl(312 60% 72%)", belly:"hsl(300 80% 93%)", dark:"hsl(300 40% 25%)",  acc:"hsl(50 95% 56%)",  rare:1},
+];
+// [しゅるい, なまえの うしろ, ランク(1〜4), からだの かたち, パーツ]
+const CRE=[
+  ["ネコ","ニャン",1,"round",["cat","tail_long","whisk","nose"]],
+  ["イヌ","ワン",1,"round",["dog","tail_curl","nose"]],
+  ["ウサギ","ピョン",1,"tall",["rabbit","nose"]],
+  ["ヒヨコ","ピヨ",1,"small",["tuft","beak","wings"]],
+  ["カメ","ガメ",1,"wide",["shell"]],
+  ["サカナ","ギョ",1,"fish",["fin","nofeet","omouth"]],
+  ["クマ","グマ",1,"round",["bear","nose","patch"]],
+  ["キツネ","コン",1,"round",["fox","fluffy","patch"]],
+  ["ヘビ","ニョロ",1,"snake",["zigzag","tongue","nofeet"]],
+  ["カエル","ケロ",1,"wide",["frogeyes","bigsmile"]],
+  ["ハチ","ブン",1,"small",["stripes","antenna","wings","stinger"]],
+  ["チョウ","パタ",1,"small",["bwings","antenna","nofeet"]],
+  ["ペンギン","ペン",1,"tall",["penguin","beak","flippers"]],
+  ["ウシ","モー",1,"round",["cow","hornS","spots","nose"]],
+  ["ヒツジ","メェ",1,"round",["wool","hornC"]],
+  ["ネズミ","チュー",2,"small",["mouse","tail_thin","whisk","nose"]],
+  ["サル","キー",2,"round",["monkey","patch","tail_curl"]],
+  ["タヌキ","ポン",2,"round",["bear","mask","fluffy","nose"]],
+  ["リス","カリ",2,"small",["bear","fluffyBig","patch"]],
+  ["フクロウ","ホー",2,"round",["tufts","beak","wings","bigeyes","patch"]],
+  ["カニ","チョキ",2,"wide",["claws","stalk","legs"]],
+  ["タコ","ニュル",2,"tall",["tentacles","nofeet","omouth"]],
+  ["キノコ","ノコ",2,"cap",["mcap"]],
+  ["クジラ","ザブ",3,"whale",["spout","nofeet"]],
+  ["オバケ","バケ",3,"ghost",["nofeet","arms"]],
+  ["ロボ","ロボ",3,"square",["rantenna","bolts"]],
+  ["スライム","プル",3,"blob",["shine","nofeet"]],
+  ["ゾウ","パオ",3,"round",["eEars","trunk"]],
+  ["ドラゴン","ドラ",4,"round",["hornD","dwings","dtail"]],
+  ["ユニコーン","ホーン",4,"round",["uhorn","mane","wings"]],
+].map(([n,s,tier,shape,parts])=>({n,s,tier,shape,parts}));
+// レア度：しゅるいの ランク ＋ めずらしい ぞくせい（ひかり・やみ・ほし）は +1
+const MONS=[];
+ELEMS.forEach((E,el)=>CRE.forEach((C,c)=>MONS.push({no:el*30+c+1, el, c, name:E.p+C.s, rar:Math.min(5,C.tier+(E.rare?1:0))})));
+const RAR=[null,{n:"ノーマル",v:"--r1"},{n:"レア",v:"--r2"},{n:"スーパーレア",v:"--r3"},{n:"ウルトラレア",v:"--r4"},{n:"げきレア",v:"--r5"}];
+const starTxt=r=>"★".repeat(r)+"☆".repeat(5-r);
+const rarChip=r=>`<span class="rar rar${r}">${starTxt(r)} ${RAR[r].n}</span>`;
+const noTxt=n=>"No."+String(n).padStart(3,"0");
+
+const GEO={round:{cx:60,cy:68,rx:32,ry:30}, tall:{cx:60,cy:66,rx:25,ry:36}, small:{cx:60,cy:72,rx:26,ry:24},
+  wide:{cx:60,cy:76,rx:38,ry:24}, fish:{cx:54,cy:66,rx:34,ry:24}, snake:{cx:60,cy:64,rx:20,ry:38},
+  whale:{cx:56,cy:72,rx:40,ry:26}, ghost:{cx:60,cy:62,rx:30,ry:34}, square:{cx:60,cy:68,rx:30,ry:30},
+  blob:{cx:60,cy:74,rx:34,ry:26}, cap:{cx:60,cy:84,rx:20,ry:18}};
+
+// ぞくせいの マーク（x,y を中心に s 倍）
+function motif(el,x,y,s,D,A){
+  const k=`stroke="${D}" stroke-width="2" stroke-linejoin="round"`, f=v=>(v*s).toFixed(1);
+  const X=v=>(x+v*s).toFixed(1), Y=v=>(y+v*s).toFixed(1);
+  switch(el){
+    case 0: return `<path d="M${X(0)} ${Y(10)} Q${X(-9)} ${Y(2)} ${X(-3)} ${Y(-8)} Q${X(-1)} ${Y(-2)} ${X(2)} ${Y(-13)} Q${X(11)} ${Y(0)} ${X(0)} ${Y(10)}Z" fill="${A}" ${k}/>`;
+    case 1: return `<path d="M${X(0)} ${Y(-11)} Q${X(9)} ${Y(2)} ${X(0)} ${Y(9)} Q${X(-9)} ${Y(2)} ${X(0)} ${Y(-11)}Z" fill="${A}" ${k}/>`;
+    case 2: return `<ellipse cx="${X(-4)}" cy="${Y(-2)}" rx="${f(4)}" ry="${f(9)}" transform="rotate(-35 ${X(-4)} ${Y(-2)})" fill="hsl(120 60% 40%)" ${k}/><ellipse cx="${X(4)}" cy="${Y(-2)}" rx="${f(4)}" ry="${f(9)}" transform="rotate(35 ${X(4)} ${Y(-2)})" fill="hsl(120 60% 40%)" ${k}/>`;
+    case 3: return `<path d="M${X(-1)} ${Y(-12)} L${X(7)} ${Y(-12)} L${X(2)} ${Y(-3)} L${X(8)} ${Y(-3)} L${X(-5)} ${Y(11)} L${X(-1)} ${Y(1)} L${X(-7)} ${Y(1)}Z" fill="${A}" ${k}/>`;
+    case 4: return `<path d="M${X(0)} ${Y(-11)} L${X(0)} ${Y(11)} M${X(-9.5)} ${Y(-5.5)} L${X(9.5)} ${Y(5.5)} M${X(-9.5)} ${Y(5.5)} L${X(9.5)} ${Y(-5.5)}" stroke="${A}" stroke-width="${f(3.2)}" stroke-linecap="round"/>`;
+    case 5: return `<path d="M${X(-10)} ${Y(6)} L${X(-6)} ${Y(-7)} L${X(3)} ${Y(-10)} L${X(10)} ${Y(-2)} L${X(7)} ${Y(8)}Z" fill="${A}" ${k}/>`;
+    case 6: return `<path d="M${X(0)} ${Y(0)} Q${X(6)} ${Y(-6)} ${X(0)} ${Y(-9)} Q${X(-10)} ${Y(-8)} ${X(-9)} ${Y(1)} Q${X(-7)} ${Y(10)} ${X(3)} ${Y(9)} Q${X(11)} ${Y(6)} ${X(11)} ${Y(-4)}" fill="none" stroke="${A}" stroke-width="${f(3.2)}" stroke-linecap="round"/>`;
+    case 7: { let r=""; for(let i=0;i<8;i++){ const a=i*Math.PI/4; r+=`M${X(Math.cos(a)*9)} ${Y(Math.sin(a)*9)} L${X(Math.cos(a)*13)} ${Y(Math.sin(a)*13)} `; }
+      return `<path d="${r}" stroke="${A}" stroke-width="${f(2.6)}" stroke-linecap="round"/><circle cx="${X(0)}" cy="${Y(0)}" r="${f(6.5)}" fill="${A}" ${k}/>`; }
+    case 8: return `<path d="M${X(3)} ${Y(-11)} A${f(11)} ${f(11)} 0 1 0 ${X(3)} ${Y(11)} A${f(8)} ${f(9)} 0 1 1 ${X(3)} ${Y(-11)}Z" fill="${A}" ${k}/>`;
+    default: { let p=""; for (let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=(i%2?4.6:11); p+=`${i?"L":"M"}${X(r*Math.cos(a))} ${Y(r*Math.sin(a))} `; }
+      return `<path d="${p}Z" fill="${A}" ${k}/>`; }
+  }
 }
-function answerG(c,btn){
-  if (G.lock) return; G.lock=true;
-  const q=G.q, m=save.grow[G.g], ok=String(c)===String(q.a), fast=(Date.now()-G.t0)/1000<8;
-  markChoices("gChoices",q);
-  let gain = ok ? 10+(fast?5:0) : 2;
-  const weak = m.hunger===0 || m.happy===0;
-  if (weak) gain=Math.ceil(gain/2);     // おなかペコペコ／ごきげんゼロだとEXP半分
-  m.tries++;
-  if (ok){
-    m.ok++; if (fast) m.fast++; sOK();
-    if (G.kind==="feed"){ m.calc++; m.hunger=Math.min(4,m.hunger+1); } else { m.kanji++; m.happy=Math.min(4,m.happy+1); }
-  } else { sNG(); btn.classList.add("ng"); }
-  kanjiBook(G.g,q,ok);
-  const up=gainExp(m,gain); G.gain+=gain;
-  persist(); G.res.push(ok); G.i++; drawMini(true);
-  $("gFb").className="feedback "+(ok?"ok":"ng");
-  $("gFb").innerHTML=(ok?`せいかい！ +${gain} EXP${fast?"（はやわざ）":""}`:`こたえは ${fmt(q.a)}　がんばった +${gain} EXP`)
-    +(weak?`<br><small>げんきが ないので EXPが はんぶん</small>`:"")+(up?`<br>レベルアップ！ Lv.${m.lv}`:"");
-  if (up) setTimeout(()=>beep([784,988,1175],.1),350);
-  timer=setTimeout(()=>{ G.i<SET ? nextG() : endSet(); }, ok?1300:2300);
+const SPARK=(x,y,r,c)=>`<path d="M${x} ${y-r} L${x+r*.3} ${y-r*.3} L${x+r} ${y} L${x+r*.3} ${y+r*.3} L${x} ${y+r} L${x-r*.3} ${y+r*.3} L${x-r} ${y} L${x-r*.3} ${y-r*.3}Z" fill="${c}"/>`;
+
+let UID=0;
+function monSvg(no, size=96){
+  const m=MONS[no-1], E=ELEMS[m.el], C=CRE[m.c], P=new Set(C.parts), id="m"+(++UID);
+  const {cx,cy,rx,ry}=GEO[C.shape], top=cy-ry, bot=cy+ry;
+  const B=E.body, L=E.belly, D=E.dark, A=E.acc;
+  const K=`stroke="${D}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
+  const dbl=(d,w=7,col=B)=>`<path d="${d}" fill="none" stroke="${D}" stroke-width="${w+5}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+  const mir=(fn)=>fn(-1)+fn(1);
+  let s="";
+  // --- うしろの かざり ---
+  if (m.rar===5) s+=`<defs><radialGradient id="${id}g"><stop offset="50%" stop-color="${A}" stop-opacity="0"/><stop offset="100%" stop-color="${A}" stop-opacity=".6"/></radialGradient></defs><circle cx="60" cy="62" r="58" fill="url(#${id}g)"/>`;
+  if (P.has("tail_long")) s+=dbl(`M${cx+rx-8} ${cy+ry*.5} Q${cx+rx+22} ${cy+ry*.4} ${cx+rx+12} ${cy-ry*.5}`,6);
+  if (P.has("tail_curl")) s+=dbl(`M${cx+rx-6} ${cy+6} Q${cx+rx+18} ${cy+4} ${cx+rx+14} ${cy-12} Q${cx+rx+10} ${cy-20} ${cx+rx+4} ${cy-12}`,6);
+  if (P.has("tail_thin")) s+=`<path d="M${cx+rx-4} ${cy+ry*.6} Q${cx+rx+26} ${cy+ry} ${cx+rx+22} ${cy-8}" fill="none" stroke="${D}" stroke-width="3" stroke-linecap="round"/>`;
+  if (P.has("fluffy")||P.has("fluffyBig")){ const big=P.has("fluffyBig"), tx=cx+rx+(big?4:2), ty=cy-(big?12:4), a=`rotate(25 ${tx} ${ty})`;
+    s+=`<ellipse cx="${tx}" cy="${ty}" rx="${big?16:12}" ry="${big?30:22}" transform="${a}" fill="${B}" ${K}/><ellipse cx="${tx+(big?8:6)}" cy="${ty-(big?20:16)}" rx="${big?8:6}" ry="${big?10:8}" transform="${a}" fill="${L}"/>`; }
+  if (P.has("dtail")) s+=`<path d="M${cx+rx-8} ${cy+ry*.5} Q${cx+rx+18} ${cy+ry*.6} ${cx+rx+24} ${cy-8} L${cx+rx+12} ${cy+2} Q${cx+rx+6} ${cy+ry*.2} ${cx+rx-8} ${cy+ry*.05}Z" fill="${B}" ${K}/>`;
+  if (P.has("wings")) s+=mir(d=>`<ellipse cx="${cx+d*(rx+3)}" cy="${cy-4}" rx="9" ry="16" transform="rotate(${d*35} ${cx+d*(rx+3)} ${cy-4})" fill="${A}" ${K}/>`);
+  if (P.has("dwings")) s+=mir(d=>{ const b=cx+d*(rx-6), o=v=>cx+d*(rx+v); return `<path d="M${b} ${cy-8} L${o(24)} ${cy-40} L${o(14)} ${cy-12} L${o(26)} ${cy-6} L${o(10)} ${cy+6} L${b} ${cy+12}Z" fill="${A}" ${K}/>`; });
+  if (P.has("bwings")) s+=mir(d=>`<ellipse cx="${cx+d*24}" cy="${cy-14}" rx="18" ry="21" transform="rotate(${d*25} ${cx+d*24} ${cy-14})" fill="${A}" ${K}/><ellipse cx="${cx+d*21}" cy="${cy+14}" rx="12" ry="14" fill="${L}" ${K}/><circle cx="${cx+d*27}" cy="${cy-18}" r="5" fill="${L}"/>`);
+  if (P.has("flippers")) s+=mir(d=>`<ellipse cx="${cx+d*(rx+2)}" cy="${cy+6}" rx="6" ry="15" transform="rotate(${d*-25} ${cx+d*(rx+2)} ${cy+6})" fill="${B}" ${K}/>`);
+  if (P.has("eEars")) s+=mir(d=>`<ellipse cx="${cx+d*(rx+2)}" cy="${cy-4}" rx="16" ry="23" fill="${B}" ${K}/><ellipse cx="${cx+d*(rx+4)}" cy="${cy-4}" rx="9" ry="15" fill="${L}"/>`);
+  if (P.has("mane")) [[6,-2],[16,2],[24,10],[29,20]].forEach(([dx,dy])=>s+=`<circle cx="${cx+dx}" cy="${top+dy}" r="9" fill="${A}" ${K}/>`);
+  if (P.has("tufts")) s+=mir(d=>`<path d="M${cx+d*(rx-14)} ${top+6} L${cx+d*(rx-2)} ${top-12} L${cx+d*(rx-2)} ${top+14}Z" fill="${B}" ${K}/>`);
+  if (P.has("cat")||P.has("fox")){ const f=P.has("fox")?1.3:1;
+    s+=mir(d=>`<path d="M${cx+d*24*f} ${top+12} L${cx+d*26*f} ${top-14*f} L${cx+d*6} ${top+2}Z" fill="${B}" ${K}/><path d="M${cx+d*20*f} ${top+6} L${cx+d*21*f} ${top-6*f} L${cx+d*12} ${top+3}Z" fill="${L}"/>`); }
+  if (P.has("rabbit")) s+=mir(d=>`<g transform="rotate(${d*8} ${cx+d*10} ${top})"><ellipse cx="${cx+d*10}" cy="${top-14}" rx="7.5" ry="21" fill="${B}" ${K}/><ellipse cx="${cx+d*10}" cy="${top-12}" rx="3.5" ry="13" fill="${L}"/></g>`);
+  if (P.has("bear")) s+=mir(d=>`<circle cx="${cx+d*(rx*.7)}" cy="${top+6}" r="10" fill="${B}" ${K}/><circle cx="${cx+d*(rx*.7)}" cy="${top+6}" r="5" fill="${L}"/>`);
+  if (P.has("mouse")) s+=mir(d=>`<circle cx="${cx+d*24}" cy="${top+2}" r="15" fill="${B}" ${K}/><circle cx="${cx+d*24}" cy="${top+2}" r="8" fill="${L}"/>`);
+  if (P.has("monkey")) s+=mir(d=>`<circle cx="${cx+d*rx}" cy="${cy-4}" r="10" fill="${B}" ${K}/><circle cx="${cx+d*rx}" cy="${cy-4}" r="5" fill="${L}"/>`);
+  if (P.has("cow")) s+=mir(d=>`<ellipse cx="${cx+d*(rx-2)}" cy="${top+10}" rx="12" ry="6" transform="rotate(${d*20} ${cx+d*(rx-2)} ${top+10})" fill="${B}" ${K}/>`);
+  if (P.has("hornD")) s+=mir(d=>`<path d="M${cx+d*20} ${top+8} L${cx+d*16} ${top-16} L${cx+d*6} ${top+3}Z" fill="${L}" ${K}/>`);
+  if (P.has("wool")) [-2,-1,0,1,2].forEach(i=>s+=`<circle cx="${cx+i*12}" cy="${top+4-(i===0?5:Math.abs(i)===1?2:-2)}" r="11" fill="${L}" ${K}/>`);
+  if (P.has("fin")) s+=`<path d="M${cx-12} ${top+5} Q${cx-2} ${top-16} ${cx+14} ${top+3}Z" fill="${A}" ${K}/>`;
+  if (C.shape==="fish") s+=`<path d="M${cx+rx-4} ${cy} L${cx+rx+20} ${cy-17} L${cx+rx+14} ${cy} L${cx+rx+20} ${cy+17}Z" fill="${A}" ${K}/>`;
+  if (C.shape==="whale") s+=`<path d="M${cx+rx-6} ${cy+4} Q${cx+rx+10} ${cy+2} ${cx+rx+14} ${cy-12} L${cx+rx+22} ${cy-20} L${cx+rx+18} ${cy-8} L${cx+rx+24} ${cy-2} L${cx+rx+12} ${cy-4} Q${cx+rx+6} ${cy+10} ${cx+rx-6} ${cy+12}Z" fill="${B}" ${K}/>`;
+  if (P.has("tentacles")) for (let i=0;i<5;i++){ const x=cx-20+i*10; s+=dbl(`M${x} ${bot-10} Q${x+(i%2?9:-9)} ${bot+4} ${x} ${bot+14}`,7); }
+  if (P.has("legs")) s+=mir(d=>[0,1,2].map(i=>`<path d="M${cx+d*(14+i*9)} ${bot-6} L${cx+d*(20+i*9)} ${bot+8}" stroke="${D}" stroke-width="3.5" stroke-linecap="round"/>`).join(""));
+  if (P.has("claws")) s+=mir(d=>{ const x=cx+d*(rx+8), y=cy-18; return `<path d="M${cx+d*(rx-6)} ${cy} L${x} ${y+8}" stroke="${D}" stroke-width="4"/><circle cx="${x}" cy="${y}" r="11" fill="${A}" ${K}/><path d="M${x} ${y-11} L${x} ${y}" stroke="${D}" stroke-width="3"/>`; });
+  if (P.has("stalk")) s+=mir(d=>`<path d="M${cx+d*10} ${top+6} L${cx+d*14} ${top-12}" stroke="${D}" stroke-width="3.5" stroke-linecap="round"/>`);
+  if (P.has("arms")) s+=mir(d=>`<ellipse cx="${cx+d*(rx+2)}" cy="${cy+4}" rx="6" ry="11" transform="rotate(${d*-40} ${cx+d*(rx+2)} ${cy+4})" fill="${B}" ${K}/>`);
+  if (!P.has("nofeet") && ["round","tall","small","wide","square"].includes(C.shape))
+    s+=mir(d=>`<ellipse cx="${cx+d*rx*.45}" cy="${bot-1}" rx="9" ry="6" fill="${B}" ${K}/>`);
+  if (P.has("frogeyes")) s+=mir(d=>`<circle cx="${cx+d*16}" cy="${top+1}" r="12" fill="${B}" ${K}/>`);
+  // --- からだ ---
+  let shape;
+  if (C.shape==="square") shape=`<rect x="${cx-rx}" y="${cy-ry}" width="${rx*2}" height="${ry*2}" rx="14"`;
+  else if (C.shape==="ghost"){ let d=`M${cx-rx} ${bot-4} L${cx-rx} ${cy} A${rx} ${rx} 0 0 1 ${cx+rx} ${cy} L${cx+rx} ${bot-4}`;
+    for (let i=0;i<4;i++){ const x0=cx+rx-i*15; d+=` Q${x0-7.5} ${bot+8} ${x0-15} ${bot-4}`; } shape=`<path d="${d}Z"`; }
+  else if (C.shape==="blob") shape=`<path d="M${cx} ${top-14} Q${cx+12} ${top+8} ${cx+rx} ${cy+2} Q${cx+rx+4} ${bot} ${cx} ${bot} Q${cx-rx-4} ${bot} ${cx-rx} ${cy+2} Q${cx-12} ${top+8} ${cx} ${top-14}Z"`;
+  else shape=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"`;
+  s+=`<defs><clipPath id="${id}c">${shape}/></clipPath></defs>`;
+  s+=`${shape} fill="${C.shape==="cap"?L:B}" stroke="${D}" stroke-width="4"/>`;
+  if (["round","tall","small","wide","fish","whale","snake"].includes(C.shape) && !P.has("penguin"))
+    s+=`<ellipse cx="${cx}" cy="${cy+ry*.38}" rx="${rx*.6}" ry="${ry*.45}" fill="${L}"/>`;
+  if (P.has("penguin")) s+=`<ellipse cx="${cx}" cy="${cy+8}" rx="${rx*.72}" ry="${ry*.72}" fill="${L}"/>`;
+  if (P.has("stripes")) s+=`<g clip-path="url(#${id}c)"><rect x="0" y="${cy-3}" width="120" height="7" fill="${D}" opacity=".85"/><rect x="0" y="${cy+11}" width="120" height="7" fill="${D}" opacity=".85"/></g>`;
+  if (P.has("spots")) s+=`<g clip-path="url(#${id}c)" fill="${D}" opacity=".75"><ellipse cx="${cx-22}" cy="${cy+2}" rx="8" ry="6"/><ellipse cx="${cx+20}" cy="${cy+14}" rx="7" ry="5"/><ellipse cx="${cx+24}" cy="${cy-12}" rx="6" ry="5"/></g>`;
+  if (P.has("zigzag")) s+=`<path d="M${cx-6} ${cy+4} L${cx+6} ${cy+12} L${cx-6} ${cy+20} L${cx+6} ${cy+28}" fill="none" stroke="${A}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
+  if (P.has("shell")) s+=`<path d="M${cx-rx+2} ${cy+2} Q${cx-rx+4} ${top-16} ${cx} ${top-16} Q${cx+rx-4} ${top-16} ${cx+rx-2} ${cy+2}Z" fill="${A}" ${K}/><path d="M${cx-12} ${top-3} L${cx+12} ${top-3} M${cx} ${top-16} L${cx} ${top-3} M${cx-26} ${cy} L${cx-12} ${top-3} M${cx+26} ${cy} L${cx+12} ${top-3}" stroke="${D}" stroke-width="2" fill="none"/>`;
+  if (P.has("mcap")) s+=`<path d="M${cx-42} ${cy-12} Q${cx-40} ${cy-60} ${cx} ${cy-62} Q${cx+40} ${cy-60} ${cx+42} ${cy-12} Q${cx} ${cy-4} ${cx-42} ${cy-12}Z" fill="${B}" ${K}/><circle cx="${cx-18}" cy="${cy-38}" r="7" fill="${L}"/><circle cx="${cx+12}" cy="${cy-46}" r="6" fill="${L}"/><circle cx="${cx+24}" cy="${cy-26}" r="5" fill="${L}"/>`;
+  if (P.has("dog")) s+=mir(d=>`<ellipse cx="${cx+d*(rx-3)}" cy="${top+16}" rx="9" ry="17" transform="rotate(${d*-22} ${cx+d*(rx-3)} ${top+16})" fill="${A}" ${K}/>`);
+  if (P.has("hornS")) s+=mir(d=>`<path d="M${cx+d*10} ${top+4} L${cx+d*15} ${top-10} L${cx+d*19} ${top+6}Z" fill="${L}" ${K}/>`);
+  if (P.has("hornC")) s+=mir(d=>`<circle cx="${cx+d*(rx-4)}" cy="${top+16}" r="9" fill="${A}" ${K}/><circle cx="${cx+d*(rx-4)}" cy="${top+16}" r="4" fill="none" stroke="${D}" stroke-width="2"/>`);
+  // --- かお ---
+  let ey=cy-ry*.12, ex=Math.min(rx*.4,13), er=6.5;
+  if (C.shape==="cap") ey=cy+2; if (P.has("shell")) ey=cy+6; if (C.shape==="ghost") ey=cy-4; if (C.shape==="snake") ex=8;
+  if (P.has("bigeyes")) er=9.5;
+  let eyes=[[cx-ex,ey],[cx+ex,ey]];
+  if (P.has("frogeyes")) eyes=[[cx-16,top+1],[cx+16,top+1]];
+  if (P.has("stalk")) eyes=[[cx-14,top-16],[cx+14,top-16]];
+  if (P.has("patch")) s+=`<ellipse cx="${cx}" cy="${ey+4}" rx="${ex+11}" ry="${er+8}" fill="${L}"/>`;
+  if (P.has("mask")) eyes.forEach(([x,y])=>s+=`<ellipse cx="${x}" cy="${y+1}" rx="10" ry="8" fill="${D}" opacity=".55"/>`);
+  const robot=P.has("bolts");
+  if (robot) s+=`<rect x="${cx-24}" y="${ey-11}" width="48" height="22" rx="10" fill="${D}"/>`;
+  const pupil = m.el===8 ? "hsl(330 85% 60%)" : D;
+  eyes.forEach(([x,y])=>{
+    if (robot) s+=`<circle cx="${x}" cy="${y}" r="6" fill="${A}"/><circle cx="${x+2}" cy="${y-2}" r="2" fill="#fff"/>`;
+    else s+=`<circle cx="${x}" cy="${y}" r="${er}" fill="#fff" stroke="${D}" stroke-width="2.5"/><circle cx="${x+1.2}" cy="${y+1}" r="${er*.55}" fill="${pupil}"/><circle cx="${x+2.6}" cy="${y-1.8}" r="${er*.2}" fill="#fff"/>`;
+  });
+  if (!robot) s+=mir(d=>`<ellipse cx="${cx+d*(ex+5)}" cy="${ey+er+5}" rx="4.5" ry="2.8" fill="hsl(350 85% 72%)" opacity=".75"/>`);
+  const my=ey+er+7;
+  if (P.has("trunk")) s+=dbl(`M${cx} ${ey+6} Q${cx+2} ${bot-6} ${cx+12} ${bot+2}`,8);
+  else if (P.has("beak")) s+=`<path d="M${cx-6} ${my-3} L${cx+6} ${my-3} L${cx} ${my+6}Z" fill="hsl(35 95% 55%)" stroke="${D}" stroke-width="2" stroke-linejoin="round"/>`;
+  else if (P.has("omouth")) s+=`<ellipse cx="${cx}" cy="${my}" rx="3.5" ry="4" fill="${D}"/>`;
+  else if (P.has("bigsmile")) s+=`<path d="M${cx-16} ${my-2} Q${cx} ${my+12} ${cx+16} ${my-2}" fill="none" stroke="${D}" stroke-width="3" stroke-linecap="round"/>`;
+  else if (P.has("nose")) s+=`<ellipse cx="${cx}" cy="${my-3}" rx="3.5" ry="2.5" fill="${D}"/><path d="M${cx-6} ${my+1} Q${cx-3} ${my+5} ${cx} ${my+1} Q${cx+3} ${my+5} ${cx+6} ${my+1}" fill="none" stroke="${D}" stroke-width="2.2" stroke-linecap="round"/>`;
+  else s+=`<path d="M${cx-6} ${my} Q${cx} ${my+6} ${cx+6} ${my}" fill="none" stroke="${D}" stroke-width="3" stroke-linecap="round"/>`;
+  if (P.has("tongue")) s+=`<path d="M${cx} ${my+4} L${cx} ${my+12} M${cx} ${my+12} L${cx-3} ${my+16} M${cx} ${my+12} L${cx+3} ${my+16}" stroke="hsl(355 80% 55%)" stroke-width="2.5" stroke-linecap="round"/>`;
+  if (P.has("whisk")) s+=mir(d=>`<path d="M${cx+d*10} ${my-1} L${cx+d*25} ${my-5} M${cx+d*10} ${my+2} L${cx+d*25} ${my+3}" stroke="${D}" stroke-width="1.8" stroke-linecap="round"/>`);
+  // --- まえの かざり ---
+  if (P.has("tuft")) s+=`<path d="M${cx} ${top+2} Q${cx-4} ${top-10} ${cx-8} ${top-8} M${cx} ${top+2} Q${cx+1} ${top-12} ${cx+4} ${top-12} M${cx} ${top+2} Q${cx+6} ${top-6} ${cx+10} ${top-6}" fill="none" stroke="${D}" stroke-width="2.5" stroke-linecap="round"/>`;
+  if (P.has("antenna")) s+=mir(d=>`<path d="M${cx+d*6} ${top+2} L${cx+d*15} ${top-16}" stroke="${D}" stroke-width="2.5" stroke-linecap="round"/><circle cx="${cx+d*15}" cy="${top-17}" r="4.5" fill="${A}" ${K}/>`);
+  if (P.has("rantenna")) s+=`<path d="M${cx} ${top} L${cx} ${top-14}" stroke="${D}" stroke-width="3"/><circle cx="${cx}" cy="${top-17}" r="5.5" fill="${A}" ${K}/>`;
+  if (robot) s+=mir(d=>`<circle cx="${cx+d*rx}" cy="${cy+8}" r="4.5" fill="${A}" ${K}/>`);
+  if (P.has("stinger")) s+=`<path d="M${cx-5} ${bot-2} L${cx} ${bot+11} L${cx+5} ${bot-2}Z" fill="${D}"/>`;
+  if (P.has("shine")) s+=`<ellipse cx="${cx-15}" cy="${cy-8}" rx="5" ry="9" transform="rotate(30 ${cx-15} ${cy-8})" fill="#fff" opacity=".7"/>`;
+  if (P.has("spout")) s+=`<path d="M${cx-4} ${top} L${cx-4} ${top-10}" stroke="${A}" stroke-width="4" stroke-linecap="round"/>`+[[-14,-16],[-4,-22],[6,-16]].map(([dx,dy])=>`<circle cx="${cx+dx}" cy="${top+dy}" r="4" fill="${A}" stroke="${D}" stroke-width="1.5"/>`).join("");
+  if (P.has("uhorn")) s+=`<path d="M${cx-6} ${top+4} L${cx} ${top-26} L${cx+6} ${top+4}Z" fill="hsl(48 95% 62%)" ${K}/><path d="M${cx-4} ${top-4} L${cx+4} ${top-8} M${cx-3} ${top-12} L${cx+3} ${top-15}" stroke="${D}" stroke-width="1.6"/>`;
+  // ぞくせいマーク（おでこ。かたちに よって 場所を かえる）
+  let mx=cx, myy=top+ry*.3, ms=.48;
+  if (robot) myy=bot-10; if (C.shape==="cap") myy=cy-30, ms=.7; if (P.has("shell")) myy=top-6; if (P.has("frogeyes")) myy=top+12;
+  if (P.has("penguin")) myy=cy+16; if (P.has("patch")||P.has("bigeyes")) myy=top+7;
+  s+=motif(m.el,mx,myy,ms,D,A);
+  // めずらしい ぞくせい・レア度の キラキラ
+  if (m.el===7) s+=`<ellipse cx="${cx}" cy="${Math.max(8,top-20)}" rx="15" ry="4" fill="none" stroke="${A}" stroke-width="3"/>`;
+  if (m.rar>=4) [[12,18],[108,22],[10,96],[110,100]].forEach(([x,y],i)=>s+=SPARK(x,y,i%2?5:6.5,"hsl(48 95% 58%)"));
+  if (m.el===9 && m.rar<4) s+=SPARK(14,24,5,A)+SPARK(106,96,4,A);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true">${s}</svg>`;
 }
 
-// 進化演出：液晶が白黒反転しながら点滅して姿が変わる
+// ===================== ユーザーと コイン =====================
+const COST=5, STUDY_N=5;
+const RATES=[[1,55],[2,28],[3,12],[4,4],[5,1]];   // レア度ごとの でる かくりつ（%）
+const today=()=>new Date().toLocaleDateString("ja-JP");
+save.users=save.users||{};
+[5,3].forEach(g=>{
+  if (!save.users[g]){
+    const old=save.grow&&save.grow[g];   // 前のバージョンで育てていたら ボーナス
+    save.users[g]={coins: old ? 10+(old.lv||1)*2 : 5, dex:{}, seen:{}, correct:0, pulls:0, daily:""};
+  }
+});
+persist();
+let cur=5;
+const U=()=>save.users[cur];
+const names=()=>({5:(save.names&&save.names[5])||"5ねんせい", 3:(save.names&&save.names[3])||"3ねんせい"});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const seenCount=u=>Object.keys(u.seen).length;
+const has=(u,no)=>(u.dex[no]||0)>0;
+function addMon(u,no){ const isNew=!u.seen[no]; u.dex[no]=(u.dex[no]||0)+1; u.seen[no]=1; return isNew; }
+function removeMon(u,no){ if (u.dex[no]>0) u.dex[no]--; }
+function coinHTML(n){ return `<i></i>${n}コイン`; }
+function refreshCoins(pop){ document.querySelectorAll("#hCoin,#sCoin,#gCoin,#gwCoin").forEach(e=>{ e.innerHTML=coinHTML(U().coins); if(pop){ e.classList.remove("pop"); void e.offsetWidth; e.classList.add("pop"); } }); }
+function toast(t){ const d=document.createElement("div"); d.className="toast"; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
+function overlay(html){ $("ovPanel").innerHTML=html; $("ov").hidden=false; $("ovPanel").scrollTop=0; }
+function closeOv(){ $("ov").hidden=true; }
+
+// シール1まいの HTML
+function stkHTML(no,{count=null,isNew=false,size=72,tag="div",attrs="",showCount=true,delay=null,cls=""}={}){
+  const m=MONS[no-1], got=count===null?true:count>0;
+  return `<${tag} class="stk got r${m.rar} ${cls}" style="--rc:var(${RAR[m.rar].v})${delay!==null?`;animation-delay:${delay}s`:""}" ${attrs}>
+    ${isNew?'<span class="new">NEW!</span>':""}
+    ${showCount&&count!==null?`<span class="cnt ${count?"":"zero"}">×${count}</span>`:""}
+    <span class="no">${noTxt(no)}</span>${monSvg(no,size)}
+    <span class="nm">${m.name}</span><span class="st">${starTxt(m.rar)}</span></${tag}>`;
+}
+
+// ===================== 画面 =====================
+const SCREENS={title:"sTitle",home:"sHome",study:"sStudy",gacha:"sGacha",book:"sBook",trade:"sTrade",grow:"sGrow",vs:"sVs"};
+function show(k){ Object.values(SCREENS).forEach(id=>$(id).hidden = id!==SCREENS[k]); closeOv(); window.scrollTo(0,0);
+  if (k==="title") renderTitle(); if (k==="home") renderHome(); if (k==="gacha") renderGacha(); if (k==="book") renderBook(); if (k==="grow") renderGrow(); }
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ clearTimeout(timer); show(b.dataset.go); });
+let timer=null;
+
+$("heroMons").innerHTML=monSvg(1,64)+monSvg(299,84)+monSvg(62,64);
+$("icStudy").innerHTML=`<span class="coin" style="font-size:1.1rem;padding:8px 14px 8px 8px"><i style="width:28px;height:28px"></i>+</span>`;
+$("icGacha").innerHTML=monSvg(124,60); $("icBook").innerHTML=monSvg(183,60); $("icTrade").innerHTML=monSvg(36,48)+monSvg(67,48);
+
+function renderTitle(){
+  const n=names();
+  $("users").innerHTML=[5,3].map(g=>{ const u=save.users[g];
+    return `<button class="ucard u${g}" data-u="${g}"><span class="uname">${esc(n[g])}</span>
+      <span class="coin">${coinHTML(u.coins)}</span><small>シール ${seenCount(u)} / ${MONS.length}</small></button>`; }).join("");
+  $("users").querySelectorAll("button").forEach(b=>b.onclick=()=>{ cur=+b.dataset.u; beep([523,659]); show("home"); });
+}
+function renderHome(){
+  const u=U();
+  if (u.daily!==today()){ u.daily=today(); u.coins+=2; persist(); setTimeout(()=>toast("きょうの ログインボーナス +2コイン！"),300); }
+  $("hName").textContent=`${names()[cur]} の シールちょう`; $("hName").style.color=`var(--p${cur})`;
+  const n=seenCount(u);
+  $("hProgTxt").textContent=`あつめた しゅるい ${n} / ${MONS.length}`; $("hProg").style.width=(n/MONS.length*100)+"%";
+  $("bookSub").textContent=`${n} / ${MONS.length} しゅるい`;
+  const m=u.pal;                                  // あいぼうの ようす（ホームにも 出す）
+  if (m) decay(m);
+  $("icGrow").innerHTML=monSvg(m?m.no:29,56);
+  $("growSub").innerHTML = m ? `${esc(m.name)} Lv.${m.lv}${evoDue(m)?'・<b style="color:var(--bad)">しんかしそう…！</b>':m.hunger===0?"・おなか ペコペコ":m.poop>=2?"・そうじして！":m.happy===0?"・つまらないよ":""}`
+    : "あいぼうを えらんで いっしょに そだてよう";
+  refreshCoins();
+}
+$("goStudy").onclick=()=>{ beep([440]); startStudy(); };
+$("goGrow").onclick=()=>{ beep([440]); show("grow"); };
+$("goGacha").onclick=()=>{ beep([440]); show("gacha"); };
+$("goBook").onclick=()=>{ beep([440]); show("book"); };
+$("goTrade").onclick=()=>{ beep([440]); openTrade(); };
+
+// ===================== べんきょう（コインを あつめる） =====================
+let S=null;
+const SIDS={label:"sQLabel",text:"sQText",fb:"sFb",ch:"sChoices"};
+function startStudy(){ const m=U().pal; S={i:0,res:[],earned:0,used:new Set(),exp:0,lv0:m?m.lv:0,no0:m?m.no:0}; show("study"); refreshCoins(); nextS(); }
+function nextS(){
+  S.lock=false; S.t0=Date.now();
+  S.q = S.i%2===1 ? kanjiQ(cur,S.used) : gen(cur);   // 算数 → 漢字 → 算数 … の じゅん
+  $("sProg").innerHTML=Array.from({length:STUDY_N},(_,i)=>`<i class="${i<S.i?(S.res[i]?"ok":"ng"):i===S.i?"now":""}"></i>`).join("");
+  renderQ(S.q,SIDS,answerS);
+}
+function answerS(c,btn){
+  if (S.lock) return; S.lock=true;
+  const ok=String(c)===String(S.q.a), u=U(), m=u.pal;
+  markChoices("sChoices",S.q); kanjiBook(cur,S.q,ok);
+  // あいぼうが いれば コインと いっしょに けいけんちも はいる
+  const ex = m ? palGain(m, ok, Date.now()-S.t0<8000, !!S.q.kanji) : 0;
+  S.exp+=ex;
+  const exTxt = ex ? `　${esc(m.name)} +${ex}EXP` : "";
+  if (ok){ sOK(); u.coins++; u.correct++; S.earned++; refreshCoins(true); $("sFb").className="feedback ok"; $("sFb").innerHTML="せいかい！ +1コイン"+exTxt; }
+  else { sNG(); btn.classList.add("ng"); $("sFb").className="feedback ng"; $("sFb").innerHTML=`ざんねん… こたえは ${fmt(S.q.a)}`+exTxt; }
+  persist(); S.res.push(ok); S.i++;
+  timer=setTimeout(()=>S.i<STUDY_N?nextS():endStudy(), ok?1000:2200);
+}
+function endStudy(){
+  const u=U(), okN=S.res.filter(Boolean).length, perfect=okN===STUDY_N, m=u.pal;
+  if (perfect){ u.coins+=2; S.earned+=2; }
+  const evo = m ? applyEvo(m,u) : [];      // レベルが あがって しんかしたら シールも もらえる
+  persist();
+  const result=()=>{
+    sWin();
+    const weak = m && (m.hunger===0 || m.happy===0);
+    overlay(`<h2>${perfect?"パーフェクト！":`${okN} / ${STUDY_N} せいかい`}</h2>
+      <span class="coin" style="font-size:1.4rem;padding:8px 18px 8px 10px"><i style="width:30px;height:30px"></i>+${S.earned}</span>
+      ${perfect?'<p style="margin:0;font-weight:800;color:var(--good)">ぜんもん せいかい ボーナス +2コイン</p>':""}
+      ${m?`<div class="prow" style="width:100%;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px 10px">${monSvg(m.no,56)}
+        <div style="flex:1"><span style="font-weight:800">${esc(m.name)} +${S.exp} EXP</span>
+        <span class="carestats">${lvTxt(S.lv0,m)}　つぎのLvまで あと ${needExp(m.lv)-m.exp}</span>
+        <div class="expbar"><i style="width:${(m.exp/needExp(m.lv)*100).toFixed(0)}%"></i></div></div></div>
+        ${weak?'<p style="margin:0;font-weight:800;color:var(--bad);font-size:.85rem">あいぼうに げんきが ないので EXPが はんぶんだったよ。ごはんや そうじを しよう！</p>':""}
+        ${evoDue(m)?'<p style="margin:0;font-weight:800;color:var(--bad);font-size:.85rem">からだが あつい…！ おせわを して おなか♥3・ごきげん♥3・うんち0に すると しんかしそう</p>':""}`:""}
+      <p style="margin:0" class="muted">いま ${u.coins}コイン（ガチャ ${Math.floor(u.coins/COST)}かい ぶん）</p>
+      <button class="btn main" id="eGacha" style="width:100%">ガチャを まわしに いく</button>
+      <button class="btn" id="eMore" style="width:100%">もう 5もん とく</button>
+      ${m?'<button class="btn" id="eGrow" style="width:100%">あいぼうの ところへ</button>':""}
+      <button class="ghost" id="eHome">ホームへ</button>`);
+    $("eGacha").onclick=()=>show("gacha"); $("eMore").onclick=()=>{ closeOv(); startStudy(); }; $("eHome").onclick=()=>show("home");
+    if (m) $("eGrow").onclick=()=>show("grow");
+  };
+  evo.length ? showEvo(m,S.no0,evo,result) : result();
+}
+
+// ===================== ガチャ =====================
+const CAPC={1:"#dee2e6",2:"#8ce99a",3:"#74c0fc",4:"#da77f2"};
+function drawMachine(){
+  const caps=[]; const cols=["#ff8787","#ffd43b","#74c0fc","#8ce99a","#da77f2","#ffa94d","#f783ac","#66d9e8"];
+  for (let i=0;i<16;i++){ const a=i*2.4, r=18+(i%4)*12; caps.push(`<circle cx="${100+Math.cos(a)*r}" cy="${92+Math.sin(a)*r*.75}" r="13" fill="${cols[i%8]}" stroke="var(--ink)" stroke-width="2.5"/>`); }
+  $("machine").innerHTML=`
+    <rect x="60" y="6" width="80" height="16" rx="6" fill="var(--boss)" stroke="var(--ink)" stroke-width="4"/>
+    <circle cx="100" cy="88" r="70" fill="var(--card)" stroke="var(--ink)" stroke-width="4"/>
+    <clipPath id="dome"><circle cx="100" cy="88" r="66"/></clipPath><g clip-path="url(#dome)">${caps.join("")}</g>
+    <path d="M58 52 Q70 32 92 26" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".7"/>
+    <rect x="28" y="140" width="144" height="104" rx="18" fill="var(--boss)" stroke="var(--ink)" stroke-width="4"/>
+    <text x="100" y="160" text-anchor="middle" font-family="Dela Gothic One, sans-serif" font-size="18" fill="#fff">ガチャ</text>
+    <rect x="40" y="212" width="40" height="24" rx="8" fill="var(--ink)"/>
+    <g id="handle"><circle cx="100" cy="198" r="24" fill="var(--card)" stroke="var(--ink)" stroke-width="4"/><rect x="94" y="176" width="12" height="44" rx="5" fill="var(--coin)" stroke="var(--ink)" stroke-width="3"/></g>
+    <rect x="138" y="194" width="20" height="10" rx="3" fill="var(--ink)"/>`;
+}
+drawMachine();
+$("rates").innerHTML=RATES.map(([r,w])=>`<span class="rar rar${r}">${RAR[r].n} ${w}%</span>`).join("");
+function renderGacha(){ refreshCoins(); $("caps").innerHTML=""; $("tapHint").hidden=true; G_busy=false; updPull(); }
+function updPull(){ $("pull1").disabled=G_busy||U().coins<COST; $("pull10").disabled=G_busy||U().coins<COST*10; }
+let G_busy=false;
+function drawOne(min=1){
+  const pool=RATES.filter(([r])=>r>=min), tot=pool.reduce((a,[,w])=>a+w,0);
+  let x=Math.random()*tot, rar=pool[0][0];
+  for (const [r,w] of pool){ if ((x-=w)<0){ rar=r; break; } }
+  return pick(MONS.filter(m=>m.rar===rar)).no;
+}
+$("pull1").onclick=()=>pull(1);
+$("pull10").onclick=()=>pull(10);
+function pull(n){
+  const u=U(); if (G_busy || u.coins<COST*n) return;
+  G_busy=true; updPull();
+  u.coins-=COST*n; u.pulls+=n;
+  let res=Array.from({length:n},()=>drawOne());
+  if (n===10 && !res.some(no=>MONS[no-1].rar>=3)) res[9]=drawOne(3);   // 10れんは スーパーレア以上 かくてい
+  const items=res.map(no=>({no, isNew:addMon(u,no)}));
+  persist(); refreshCoins(true);
+  $("caps").innerHTML=""; beep([392,440,494,523],.09);
+  const h=$("handle"); h.classList.remove("turn"); void h.getBoundingClientRect(); h.classList.add("turn");
+  const mc=$("machine"); mc.classList.remove("shake"); void mc.getBoundingClientRect(); mc.classList.add("shake");
+  setTimeout(()=>{
+    const best=Math.max(...items.map(i=>MONS[i.no-1].rar));
+    items.forEach((it,i)=>{
+      const r=MONS[it.no-1].rar, b=document.createElement("button");
+      b.className="cap"+(n>1?" small":"")+(r===5?" c5":""); b.style.setProperty("--cc",CAPC[r]||"#fff");
+      b.style.animationDelay=(i*.08)+"s"; b.setAttribute("aria-label","カプセル");
+      b.onclick=()=>openCaps(items,best);
+      $("caps").appendChild(b);
+    });
+    beep([262,330],.1); $("tapHint").hidden=false;
+  },900);
+}
+function openCaps(items,best){
+  if ($("tapHint").hidden) return;
+  $("tapHint").hidden=true;
+  document.querySelectorAll(".cap").forEach(c=>c.classList.add("open"));
+  if (best>=4){ const f=document.createElement("div"); f.className="flash"+(best===5?" rainbow":""); document.body.appendChild(f); setTimeout(()=>f.remove(),700); }
+  if (best===5) beep([523,659,784,1046,1318,1568],.13); else if (best>=4) beep([523,659,784,1046,1318],.11); else sWin();
+  setTimeout(()=>{
+    G_busy=false; updPull();
+    if (items.length===1){
+      const it=items[0], m=MONS[it.no-1], c=U().dex[it.no];
+      overlay(`${it.isNew?'<div class="badge-new">NEW!</div>':`<div class="muted" style="font-weight:800">ダブり！（${c}まいめ）</div>`}
+        <div class="bigstk pop">${monSvg(it.no,170)}<span class="muted" style="font-weight:800">${noTxt(it.no)}・${ELEMS[m.el].n}の ${CRE[m.c].n}</span><span class="nm">${m.name}</span>${rarChip(m.rar)}</div>
+        <button class="btn main" id="gAgain" style="width:100%" ${U().coins<COST?"disabled":""}>もう 1かい（5コイン）</button>
+        <button class="ghost" id="gClose">とじる</button>`);
+    } else {
+      const u=U();
+      overlay(`<h2>10れん の けっか</h2><div class="book">${items.map((it,i)=>stkHTML(it.no,{isNew:it.isNew,size:60,showCount:false,delay:i*.07,cls:"pop"})).join("")}</div>
+        <p style="margin:0" class="muted">NEW ${items.filter(i=>i.isNew).length}まい ／ あつめた しゅるい ${seenCount(u)} / ${MONS.length}</p>
+        <button class="btn main" id="gAgain" style="width:100%" ${u.coins<COST?"disabled":""}>1かい まわす（5コイン）</button>
+        <button class="ghost" id="gClose">とじる</button>`);
+    }
+    $("gAgain").onclick=()=>{ closeOv(); pull(1); };
+    $("gClose").onclick=()=>{ closeOv(); $("caps").innerHTML=""; };
+  },380);
+}
+
+// ===================== シールちょう（ずかん） =====================
+let bookEl=0;
+function renderBook(){
+  const u=U();
+  $("bCount").textContent=`${seenCount(u)} / ${MONS.length}`;
+  $("bTabs").innerHTML=ELEMS.map((E,i)=>{ const n=MONS.filter(m=>m.el===i&&u.seen[m.no]).length;
+    return `<button aria-pressed="${i===bookEl}" data-el="${i}"><svg width="22" height="22" viewBox="0 0 120 120">${motif(i,60,60,4,E.dark,E.acc)}</svg>${E.n}<small>${n}/30</small></button>`; }).join("");
+  $("bTabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{ bookEl=+b.dataset.el; renderBook(); });
+  $("book").innerHTML=MONS.filter(m=>m.el===bookEl).map(m=>{
+    if (!u.seen[m.no]) return `<div class="stk" style="--rc:var(${RAR[m.rar].v})"><span class="no">${noTxt(m.no)}</span><span class="sil">${monSvg(m.no,72)}</span><span class="nm muted">？？？</span><span class="st">${starTxt(m.rar)}</span></div>`;
+    return stkHTML(m.no,{count:u.dex[m.no]||0,tag:"button",attrs:`data-no="${m.no}"`});
+  }).join("");
+  $("book").querySelectorAll("button[data-no]").forEach(b=>b.onclick=()=>showDetail(+b.dataset.no));
+}
+function showDetail(no){
+  const m=MONS[no-1], c=U().dex[no]||0;
+  overlay(`<div class="bigstk">${monSvg(no,170)}<span class="muted" style="font-weight:800">${noTxt(no)}・${ELEMS[m.el].n}の ${CRE[m.c].n}</span><span class="nm">${m.name}</span>${rarChip(m.rar)}</div>
+    <p style="margin:0;font-weight:800">${c?`もっている かず ×${c}`:"いまは もっていない（こうかんで あげたよ）"}</p>
+    <button class="ghost" id="dClose">とじる</button>`);
+  $("dClose").onclick=closeOv;
+}
+
+// シールを えらぶ まど（こうかん用）
+function openPicker(user,title,onPick){
+  const u=save.users[user], list=MONS.filter(m=>has(u,m.no)).sort((a,b)=>(u.dex[b.no]-u.dex[a.no])||(a.no-b.no));
+  overlay(`<h3>${title}</h3>
+    ${list.length?`<p class="muted" style="margin:0;font-size:.85rem">ダブっている シールが うえに ならんでいるよ</p><div class="book">${list.map(m=>stkHTML(m.no,{count:u.dex[m.no],size:56,tag:"button",attrs:`data-no="${m.no}"`})).join("")}</div>`
+      :`<p class="muted">まだ シールを もっていないよ。ガチャを まわそう！</p>`}
+    <button class="ghost" id="pClose">やめる</button>`);
+  $("ovPanel").querySelectorAll("button[data-no]").forEach(b=>b.onclick=()=>{ beep([660]); closeOv(); onPick(+b.dataset.no); });
+  $("pClose").onclick=closeOv;
+}
+function slotHTML(who,no,user,okFlag){
+  if (!no) return `<span class="who">${esc(who)}</span><span class="muted" style="font-size:.85rem">タップして<br>シールを えらぶ</span>`;
+  const m=MONS[no-1], c=user!==null?(save.users[user].dex[no]||0):null;
+  return `<span class="who">${esc(who)}</span>${monSvg(no,76)}<span style="font-weight:800;font-size:.85rem">${m.name}</span>${rarChip(m.rar)}
+    ${c===1?'<span class="last1">さいごの 1まい</span>':""}${okFlag?'<span class="okb">OK！</span>':""}`;
+}
+
+// ===================== こうかん =====================
+function tView(id){ ["tMenu","tLocal","tLobby","tWait","tRoom"].forEach(x=>$(x).hidden = x!==id); }
+function openTrade(){
+  const ready=!!fbReady();
+  $("tOnlineBtn").disabled=!ready; $("tOnlineNote").hidden=ready;
+  tView("tMenu"); show("trade");
+}
+$("tBack").onclick=()=>{ if (!$("tMenu").hidden) return show("home"); leaveOnline(); tView("tMenu"); };
+
+// --- きょうだいと（この スマホで） ---
+let LT=null;
+$("tLocalBtn").onclick=()=>{ LT={a:0,b:0,arm:false}; renderLocal(); tView("tLocal"); };
+function renderLocal(){
+  const other=cur===5?3:5, n=names();
+  $("lsA").innerHTML=slotHTML(`${n[cur]} が あげる`,LT.a,cur); $("lsA").classList.toggle("filled",!!LT.a);
+  $("lsB").innerHTML=slotHTML(`${n[other]} が あげる`,LT.b,other); $("lsB").classList.toggle("filled",!!LT.b);
+  $("lDo").disabled=!(LT.a&&LT.b); $("lDo").textContent=LT.arm?"ほんとうに こうかんする？（もう1かい おす）":"こうかん する";
+  $("lsA").onclick=()=>openPicker(cur,`${n[cur]}が あげる シール`,no=>{ LT.a=no; LT.arm=false; renderLocal(); });
+  $("lsB").onclick=()=>openPicker(other,`${n[other]}が あげる シール`,no=>{ LT.b=no; LT.arm=false; renderLocal(); });
+}
+$("lDo").onclick=()=>{
+  if (!LT.arm){ LT.arm=true; renderLocal(); return; }
+  const other=cur===5?3:5, A=save.users[cur], Bu=save.users[other];
+  removeMon(A,LT.a); removeMon(Bu,LT.b); const na=addMon(A,LT.b), nb=addMon(Bu,LT.a); persist(); sWin();
+  const n=names();
+  overlay(`<h2>こうかん せいりつ！</h2>
+    <div class="slots" style="width:100%"><div class="slot filled">${slotHTML(`${n[cur]} が もらった`,LT.b,null)}${na?'<span class="badge-new" style="font-size:1rem">NEW!</span>':""}</div><span class="swap">⇄</span><div class="slot filled">${slotHTML(`${n[other]} が もらった`,LT.a,null)}${nb?'<span class="badge-new" style="font-size:1rem">NEW!</span>':""}</div></div>
+    <button class="btn" id="lMore" style="width:100%">もっと こうかんする</button><button class="ghost" id="lHome">ホームへ</button>`);
+  $("lMore").onclick=()=>{ closeOv(); LT={a:0,b:0,arm:false}; renderLocal(); };
+  $("lHome").onclick=()=>show("home");
+};
+
+// --- ともだちと（Firebase つうしん） ---
+// 設定は config.js の window.FIREBASE_CONFIG。なければ このきのうは つかえない
+let fdb=null, T=null;
+function fbReady(){
+  if (fdb) return fdb;
+  try{ if (!window.FIREBASE_CONFIG || !window.firebase) return null; firebase.initializeApp(window.FIREBASE_CONFIG); fdb=firebase.database(); }catch(e){ fdb=null; }
+  return fdb;
+}
+const otherRole=r=>r==="a"?"b":"a";
+// Firebase の transaction は、まだ よみこんでいない へやだと 1かいめが null になって 中止されてしまう。
+// さきに 1かいぶん listen して へやの ようすを うけとってから transaction を つかう
+function firstVal(ref){
+  return new Promise(res=>{
+    const t=setTimeout(()=>{ ref.off("value",h); res(undefined); },8000);
+    function h(s){ clearTimeout(t); ref.off("value",h); res(s.val()); }
+    ref.on("value",h);
+  });
+}
+$("tOnlineBtn").onclick=()=>{ if (!fbReady()) return; T=null; $("tMsg").textContent=""; $("tCode").value=""; tView("tLobby"); };
+$("tCreate").onclick=async()=>{
+  const db=fbReady(); if (!db) return; $("tMsg").textContent="";
+  try{
+    let code, ref;
+    for (let i=0;i<5;i++){ code=String(rnd(1000,9999)); ref=db.ref("trades/"+code); const v=(await ref.get()).val(); if (!v || Date.now()-(v.created||0)>3600e3) break; }
+    await ref.set({created:Date.now(), state:"wait", a:{name:names()[cur], offer:0, ok:false}});
+    ref.onDisconnect().remove();
+    T={code, role:"a", ref}; $("tShow").textContent=code; tView("tWait"); listenTrade();
+  }catch(e){ $("tMsg").textContent="つながらなかったよ。インターネットを たしかめてね"; }
+};
+$("tJoin").onclick=async()=>{
+  const db=fbReady(); if (!db) return;
+  const code=$("tCode").value.replace(/\D/g,"");
+  if (code.length!==4){ $("tMsg").textContent="4けたの コードを いれてね"; return; }
+  const ref=db.ref("trades/"+code), me={name:names()[cur], offer:0, ok:false};
+  try{
+    T={code, role:"b", ref}; listenTrade();              // さきに つないでから transaction（firstVal の せつめい を みてね）
+    const v=await firstVal(ref);
+    if (!v || v.state!=="wait"){ ref.off(); T=null; $("tMsg").textContent="その へやは みつからないよ"; return; }
+    const res=await ref.transaction(r=>{ if (!r || r.state!=="wait") return; r.b=me; r.state="open"; return r; });
+    if (!res.committed){ ref.off(); T=null; $("tMsg").textContent="その へやは みつからないよ"; return; }
+    ref.onDisconnect().update({bOff:true});
+  }catch(e){ if (T&&T.ref){ T.ref.off(); T=null; } $("tMsg").textContent="つながらなかったよ。インターネットを たしかめてね"; }
+};
+function listenTrade(){ T.open=false; T.done=false; T.ref.on("value",s=>onTrade(s.val())); }
+function leaveOnline(){
+  if (!T || !T.ref) return;
+  T.ref.off(); const r=T.r;
+  if (T.role==="a" && (!r || r.state==="wait")) T.ref.remove();
+  else if (r && r.state==="open") T.ref.update({[T.role+"Off"]:true});
+  T.ref=null;
+}
+function onTrade(r){
+  if (!T) return;
+  if (!r){ if (T.open && !T.done){ $("oMsg").className="feedback ng"; $("oMsg").textContent="へやが なくなったよ"; $("oOk").disabled=true; } return; }
+  T.r=r;
+  if (r.state==="wait") return;
+  if (!T.open){ T.open=true; if (T.role==="a"){ T.ref.onDisconnect().cancel(); T.ref.onDisconnect().update({aOff:true}); } beep([523,659,784]); tView("tRoom"); }
+  const me=r[T.role], fr=r[otherRole(T.role)];
+  $("osMe").innerHTML=slotHTML("あなたが あげる",me.offer,cur,me.ok); $("osMe").classList.toggle("filled",!!me.offer);
+  $("osFr").innerHTML=slotHTML(`${fr.name}が あげる`,fr.offer,null,fr.ok); $("osFr").classList.toggle("filled",!!fr.offer);
+  if (!fr.offer) $("osFr").innerHTML=`<span class="who">${esc(fr.name)}</span><span class="muted" style="font-size:.85rem">えらんで いるよ…</span>`;
+  const both=me.offer&&fr.offer;
+  $("oOk").disabled=!both || r.state!=="open"; $("oOk").textContent=me.ok?"OK を とりけす":"これで OK！";
+  $("oMsg").className="feedback";
+  $("oMsg").textContent = r[otherRole(T.role)+"Off"] ? "ともだちが いなくなったよ" : !both ? "おたがいに あげる シールを えらんでね" : me.ok&&!fr.ok ? "ともだちの OK を まっています…" : !me.ok&&fr.ok ? "ともだちは OK だよ！" : "";
+  if (r.state==="done" && !T.done){ T.done=true; applyOnline(r); }
+}
+$("osMe").onclick=()=>{
+  if (!T || !T.r || T.r.state!=="open") return;
+  openPicker(cur,"ともだちに あげる シール",no=>T.ref.transaction(r=>{
+    if (!r || r.state!=="open") return; r[T.role].offer=no; r.a.ok=false; r.b.ok=false; return r; }));
+};
+$("oOk").onclick=()=>T.ref.transaction(r=>{
+  if (!r || r.state!=="open" || !r.a.offer || !r.b.offer) return;
+  r[T.role].ok=!r[T.role].ok;
+  if (r.a.ok && r.b.ok) r.state="done";
+  return r;
+});
+function applyOnline(r){
+  const u=U(), give=r[T.role].offer, get=r[otherRole(T.role)].offer, fr=r[otherRole(T.role)].name;
+  removeMon(u,give); const isNew=addMon(u,get); persist(); sWin();
+  if (T.role==="a") setTimeout(()=>{ try{ T.ref&&T.ref.remove(); }catch(e){} },5000);
+  T.ref.off();
+  overlay(`<h2>こうかん せいりつ！</h2>${isNew?'<div class="badge-new">NEW!</div>':""}
+    <div class="bigstk pop">${monSvg(get,150)}<span class="nm">${MONS[get-1].name}</span>${rarChip(MONS[get-1].rar)}</div>
+    <p style="margin:0" class="muted">${esc(fr)}から もらったよ（あげた シール：${MONS[give-1].name}）</p>
+    <button class="btn" id="oAgain" style="width:100%">もっと こうかんする</button><button class="ghost" id="oHome">ホームへ</button>`);
+  $("oAgain").onclick=()=>{ closeOv(); T=null; $("tMsg").textContent=""; tView("tLobby"); };
+  $("oHome").onclick=()=>{ T=null; show("home"); };
+}
+
+// ===================== そだてる（あいぼう） =====================
+// シールちょうの モンスター 1ぴきを「あいぼう」にして そだてる。
+// ・べんきょうの こたえで けいけんち（コインとは べつに もらえる）
+// ・Lv.8／18／30 で しんか＝おなじ ぞくせいの まま、しゅるいの ランクが 1つ あがる
+// ・しんかした すがたの シールも シールちょうに ふえる
+//
+// 【しんかを かんたんには させない】
+// レベルが とどいても それだけでは しんかしない。おなか3いじょう・ごきげん3いじょう・うんち0
+// ＝「ちゃんと おせわ できている」ことが じょうけん。とどいた あとは からだが あつくなって
+// しらせてくれるので、ごはんや そうじを して あげると しんかする。
+// めやす（べんきょう1かい＝5もんで だいたい 60EXP）：
+//   Lv.8  … 7かいぐらい（1週間）   Lv.18 … 31かいぐらい（1か月）   Lv.30 … 82かいぐらい（3か月）
+const TICK=4*3600e3;                      // 4じかんごとに おなか・ごきげんが へる
+const EVO_LV=[8,18,30];                   // この レベルで しんか（かんたんに とどかない ように した）
+const STAGE_N=["ベビー","こども","おとな","でんせつ"];   // ランク1〜4の よびかた
+const needExp=lv=>20+lv*10;
+const pips=v=>"♥".repeat(v)+"♡".repeat(4-v);
+const lvTxt=(lv0,m)=>lv0===m.lv ? `Lv.${m.lv}` : `Lv.${lv0} → Lv.${m.lv}`;
+const tierOf=no=>CRE[MONS[no-1].c].tier;
+const TIERS={}; CRE.forEach((c,i)=>(TIERS[c.tier]=TIERS[c.tier]||[]).push(i));
+function freshPal(no){ return {no0:no,no,name:MONS[no-1].name,lv:1,exp:0,ok:0,tries:0,calc:0,kanji:0,hunger:3,happy:3,poop:0,neglect:0,last:Date.now(),chain:[no]}; }
+
+// そだてかたで しんか先が かわる（けいさん おおめ／かんじ おおめ／バランス／おせわ わすれがち）
+function careBranch(m){
+  const acc=m.tries ? m.ok/m.tries : 0;
+  if (m.neglect>=5) return 3;
+  if (m.calc>m.kanji*1.3) return 0;
+  if (m.kanji>m.calc*1.3) return 1;
+  return acc>=0.85 ? 2 : 4;
+}
+function nextNo(m){
+  const t=tierOf(m.no)+1, list=TIERS[t];
+  if (!list) return 0;                                   // もう いちばん うえの ランク
+  const el=MONS[m.no-1].el;
+  return el*30 + list[(hash(ELEMS[el].n+t)+careBranch(m)*3) % list.length] + 1;
+}
+function gainExp(m,n){ let up=false; m.exp+=n; while(m.exp>=needExp(m.lv)){ m.exp-=needExp(m.lv); m.lv++; up=true; } return up; }
+// しんかの レベルに とどいているか（まだ しんかしていない ぶんが あるか）
+const evoDue=m=>EVO_LV.filter(l=>m.lv>=l).length > m.chain.length-1;
+// しんかの じょうけん：ちゃんと おせわ できていること
+const evoReady=m=>m.hunger>=3 && m.happy>=3 && m.poop===0;
+// いまから その レベルまでに あと どれだけ EXPが いるか
+function expTo(m,lv){ let n=needExp(m.lv)-m.exp; for (let i=m.lv+1;i<lv;i++) n+=needExp(i); return n; }
+// つぎの しんかの レベル（もう ないなら 0）
+const nextEvoLv=m=>EVO_LV[m.chain.length-1]||0;
+function applyEvo(m,u){
+  const out=[];
+  if (!evoReady(m)) return out;            // げんきが ないと しんかできない
+  while (evoDue(m)){
+    const nx=nextNo(m); if (!nx) break;
+    if (m.name===MONS[m.no-1].name) m.name=MONS[nx-1].name;   // なまえを つけていなければ しゅるいの なまえも かわる
+    m.no=nx; m.chain.push(nx); addMon(u,nx); out.push(nx);
+  }
+  return out;
+}
+// べんきょうの 1もんぶん。けいけんちを かえす
+function palGain(m,ok,fast,isKanji){
+  m.tries++;
+  let g = ok ? 10+(fast?5:0) : 2;
+  if (m.hunger===0 || m.happy===0) g=Math.ceil(g/2);     // げんきが ないと はんぶん
+  if (ok){ m.ok++; if (isKanji) m.kanji++; else m.calc++; }
+  gainExp(m,g); return g;
+}
+// 時間が たつと おなか・ごきげんが へって、うんちが でる
+function decay(m){
+  const n=Math.min(6, Math.floor((Date.now()-m.last)/TICK));
+  if (n<=0) return;
+  for (let i=0;i<n;i++){
+    if (m.hunger===0) m.neglect++;
+    m.hunger=Math.max(0,m.hunger-1);
+    m.happy=Math.max(0,m.happy-(m.poop?2:1));
+    if (i%2===1) m.poop=Math.min(3,m.poop+1);
+  }
+  m.last+=n*TICK; persist();
+}
+
+// ---- ドット絵エンジン：モンスターの SVGを 小さく かいて 液晶の3色に へらす ----
+const LCDC={bg:"#b4c0a0", mid:"#6b7a5a", dark:"#28301f"};
+const spCache={};
+function sprite(no,size=32){
+  const key=no+"|"+size;
+  if (spCache[key]) return spCache[key];
+  return spCache[key]=new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement("canvas"); c.width=c.height=size;
+      const x=c.getContext("2d"); x.drawImage(img,0,0,size,size);
+      try{
+        const d=x.getImageData(0,0,size,size).data, out=new Uint8Array(size*size);
+        for (let i=0;i<size*size;i++){
+          if (d[i*4+3]<100) continue;
+          const l=(.3*d[i*4]+.59*d[i*4+1]+.11*d[i*4+2])/255;
+          out[i]= l<.42 ? 2 : l<.8 ? 1 : 3;              // 2=こい 1=ちゅうかん 3=あかるい
+        }
+        res({size,out});
+      }catch(e){ res({size,img}); }                      // へらせない ブラウザでは そのまま かく
+    };
+    img.onerror=()=>res(null);
+    img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(monSvg(no,120));
+  });
+}
+function drawSp(ctx,sp,x0,y0,{flip=false,inv=false,fall=0}={}){
+  if (!sp) return;
+  if (sp.img){ ctx.drawImage(sp.img,x0,y0+fall,sp.size,sp.size); return; }
+  const n=sp.size;
+  for (let y=0;y<n-fall;y++) for (let x=0;x<n;x++){
+    const v=sp.out[y*n+x]; if (!v) continue;
+    let c = v===2?LCDC.dark : v===1?LCDC.mid : LCDC.bg;
+    if (inv) c = v===2?LCDC.bg : v===3?LCDC.dark : LCDC.mid;
+    ctx.fillStyle=c; ctx.fillRect(x0+(flip?n-1-x:x), y0+y+fall, 1, 1);
+  }
+}
+function drawBits(ctx,bits,x0,y0,col){ ctx.fillStyle=col; bits.forEach((row,y)=>[...row].forEach((ch,x)=>{ if (ch==="#") ctx.fillRect(x0+x,y0+y,1,1); })); }
+const POOP=["..#...",".##...","####..",".####.","######"];
+const HEART=[".#.#.","#####","#####",".###.","..#.."];
+function clearLcd(ctx,w,h,dark){ ctx.fillStyle=dark?LCDC.dark:LCDC.bg; ctx.fillRect(0,0,w,h); }
+
+// ---- そだてる 画面 ----
+let lcdSp=null, frame=0, gMsg="", gMsgUntil=0, changeArm=false;
+function renderGrow(){
+  const u=U(), m=u.pal;
+  $("gNone").hidden=!!m; $("gHome").hidden=!m;
+  refreshCoins();
+  if (!m){
+    const owned=MONS.filter(x=>has(u,x.no));
+    $("gNoneArt").innerHTML=(owned.length?owned.slice(0,3):[MONS[28],MONS[0]]).map(x=>monSvg(x.no,64)).join("");
+    $("gPickBtn").disabled=!owned.length; $("gNoneNote").hidden=!!owned.length;
+    return;
+  }
+  decay(m); growHome();
+}
+function stageRow(t){ return `<div class="stagerow">${STAGE_N.map((s,i)=>`<span class="${i+1<t?"on":i+1===t?"now":""}">${s}</span>`).join("")}</div>`; }
+function growHome(){
+  const u=U(), m=u.pal, mon=MONS[m.no-1], t=tierOf(m.no), nx=nextEvoLv(m);
+  $("device").className="device p"+cur;
+  $("dName").textContent=m.name; $("dLv").textContent="Lv."+m.lv;
+  $("mHunger").textContent=pips(m.hunger); $("mHappy").textContent=pips(m.happy);
+  $("mExp").style.width=(m.exp/needExp(m.lv)*100)+"%";
+  const acc=m.tries?Math.round(m.ok/m.tries*100):0;
+  $("partner").innerHTML=`
+    <div class="prow">${monSvg(m.no,84)}
+      <div><span class="pname">${esc(m.name)}</span>
+      <span style="font-weight:800;font-size:.85rem">${mon.name}（${ELEMS[mon.el].n}の ${CRE[mon.c].n}）</span>${rarChip(mon.rar)}
+      <span class="carestats">${STAGE_N[t-1]} ・ せいかい ${m.ok}もん（${acc}%）・ けいさん ${m.calc} ・ かんじ ${m.kanji}</span></div></div>
+    ${stageRow(t)}
+    <div class="muted" style="font-size:.85rem;font-weight:700">${
+      evoDue(m) ? `<span style="color:var(--bad)">からだが あつい…！ <b>しんかの じゅんびが できてるよ</b><br>ごはん・あそぶ・そうじで おなか♥3・ごきげん♥3・うんち0に してあげよう</span>`
+      : t>=4 ? "もう いちばん つよい すがた！ レベルを あげて もっと つよくしよう"
+      : nx ? `${nx-m.lv<=1?"もうすぐ しんか…！ ":""}<b>Lv.${nx}</b>で しんか！ あと <b>${expTo(m,nx)} EXP</b>（のこり ${nx-m.lv} レベル）。そだてかたで なる すがたが かわるよ`
+      : "べんきょうで けいけんちを あつめよう"}</div>
+    ${m.chain.length>1?`<div class="chain">${m.chain.map(no=>`<span>${monSvg(no,40)}<small>${MONS[no-1].name}</small></span>`).join("<b>→</b>")}</div>`:""}`;
+  const online=!!fbReady();
+  $("gVs").disabled=!online; $("gVsNote").hidden=online;
+  changeArm=false; $("gChange").textContent="あいぼうを かえる"; $("gChange").classList.remove("danger");
+  refreshSprite();
+}
+function refreshSprite(){ const m=U().pal; if (!m) return; sprite(m.no).then(sp=>{ lcdSp=sp; drawLcd(); }); }
+function lcdSay(t){ gMsg=t; gMsgUntil=Date.now()+1800; drawLcd(); }
+function drawLcd(){
+  const m=U().pal; if (!m || $("sGrow").hidden) return;
+  const ctx=$("lcd").getContext("2d");
+  clearLcd(ctx,64,40);
+  const sad = m.hunger===0 || m.happy===0;
+  let x=16, y=4, flip=false;
+  if (!sad){
+    const path=[16,20,24,28,24,20,16,12,8,4,8,12], i=frame%path.length;
+    x=path[i]; flip=path[(i+1)%path.length]<x; y=4+(frame%2);
+  }
+  drawSp(ctx,lcdSp,x,y,{flip});
+  for (let i=0;i<m.poop;i++) drawBits(ctx,POOP,58-i*7,35,LCDC.dark);
+  if (!sad && m.happy>=4 && frame%4<2) drawBits(ctx,HEART,Math.min(58,x+28),y,LCDC.dark);
+  $("lcdMsg").textContent = (gMsg && Date.now()<gMsgUntil) ? gMsg
+    : evoDue(m) ? "からだが あつい…！"
+    : m.hunger===0 ? "おなか ペコペコ…" : m.happy===0 ? "つまらないよ…" : m.poop>=2 ? "くさい…" : "";
+}
+setInterval(()=>{ if ($("sGrow").hidden || $("gHome").hidden) return; frame++; drawLcd(); }, 650);
+
+// ---- おせわ ----
+$("aFeed").onclick=()=>{
+  const u=U(), m=u.pal;
+  if (m.hunger>=4){ beep([520]); return lcdSay("もう おなか いっぱい"); }
+  if (u.coins<1){ sNG(); return lcdSay("コインが ないよ…"); }
+  u.coins--; m.hunger=Math.min(4,m.hunger+1); m.happy=Math.min(4,m.happy+1);
+  persist(); beep([660,880],.1); refreshCoins(true); growHome(); lcdSay("おいしい！"); afterCare();
+};
+$("aPlay").onclick=()=>{
+  const m=U().pal;
+  if (m.hunger===0){ sNG(); return lcdSay("おなかが すいて うごけない…"); }
+  if (m.happy>=4){ beep([520]); return lcdSay("ごきげん さいこう！"); }
+  m.happy=Math.min(4,m.happy+1); m.hunger=Math.max(0,m.hunger-1);
+  persist(); beep([784,988],.1); growHome(); lcdSay("たのしい！"); afterCare();
+};
+$("aClean").onclick=()=>{
+  const m=U().pal;
+  if (!m.poop){ beep([520]); return lcdSay("もう きれいだよ"); }
+  m.poop=0; m.happy=Math.min(4,m.happy+1);
+  persist(); beep([880,660,440],.08); growHome(); lcdSay("ピカピカ！"); afterCare();
+};
+// おせわの あとに じょうけんが そろったら、その ばで しんかする
+function afterCare(){
+  const u=U(), m=u.pal;
+  if (!evoDue(m) || !evoReady(m)) return;
+  const no0=m.no, list=applyEvo(m,u); persist();
+  if (list.length) showEvo(m,no0,list,()=>{ closeOv(); growHome(); });
+}
+$("gStudy").onclick=()=>{ beep([440]); startStudy(); };
+
+// ---- あいぼうを えらぶ／かえる／なまえ ----
+function openPalPicker(){
+  const u=U(), owned=MONS.filter(x=>has(u,x.no)).sort((a,b)=>(b.rar-a.rar)||(a.no-b.no));
+  overlay(`<h3>あいぼうに する モンスター</h3>
+    ${owned.length?`<p class="muted" style="margin:0;font-size:.85rem">まえに そだてた こは レベルを おぼえているよ</p>
+      <div class="book">${owned.map(x=>stkHTML(x.no,{size:56,tag:"button",attrs:`data-no="${x.no}"`,showCount:false})).join("")}</div>`
+      :`<p class="muted">まだ シールを もっていないよ。ガチャを まわそう！</p>`}
+    <button class="ghost" id="pClose">やめる</button>`);
+  $("ovPanel").querySelectorAll("button[data-no]").forEach(b=>b.onclick=()=>setPal(+b.dataset.no));
+  $("pClose").onclick=closeOv;
+}
+function setPal(no){
+  const u=U(); u.pals=u.pals||{};
+  if (u.pal) u.pals[u.pal.no0]=u.pal;                      // いまの こを おぼえておく
+  const back=Object.keys(u.pals).map(k=>u.pals[k]).find(p=>p.no===no||p.no0===no);
+  u.pal = back || freshPal(no);
+  u.pal.last=Date.now();
+  persist(); closeOv(); sWin(); lcdSp=null; renderGrow();
+}
+$("gPickBtn").onclick=openPalPicker;
+$("gChange").onclick=()=>{
+  if (!changeArm){ changeArm=true; $("gChange").textContent="ほんとうに かえる？"; $("gChange").classList.add("danger"); return; }
+  openPalPicker();
+};
+$("gRename").onclick=()=>{
+  const m=U().pal;
+  overlay(`<h3>なまえを かえる</h3>
+    ${monSvg(m.no,90)}
+    <input id="pName" class="nameinput" maxlength="8" value="${esc(m.name)}">
+    <button class="btn main" id="pSave" style="width:100%">きめた！</button>
+    <button class="ghost" id="pCancel">やめる</button>`);
+  $("pSave").onclick=()=>{ m.name=$("pName").value.trim()||MONS[m.no-1].name; persist(); closeOv(); growHome(); sWin(); };
+  $("pCancel").onclick=closeOv;
+};
+
+// ---- しんか演出：液晶が 白黒 はんてんしながら すがたが かわる ----
 function evoAnim(canvasId, oldSp, newSp, done){
   const ctx=$(canvasId).getContext("2d"); let k=0;
   const iv=setInterval(()=>{
@@ -1147,203 +1415,91 @@ function evoAnim(canvasId, oldSp, newSp, done){
     if (++k>14){ clearInterval(iv); done(); }
   },140);
 }
-function endSet(){
-  const m=save.grow[G.g];
-  if (G.kind==="feed") m.poop=Math.min(3,m.poop+1);   // ごはんの あとは うんち
-  if (m.lv<2){ m.lv=2; m.exp=0; }                      // 最初のおせわで たまごが かえる
-  const evolved=applyEvo(m,G.st0), st=stageOf(m.lv), okN=G.res.filter(Boolean).length;
-  persist();
-  const btns=`<button class="btn" id="gMore">もう いっかい</button><button class="ghost" id="gBack">${esc(m.name)}の ところへ</button>`;
-  if (evolved.length){
-    overlay(`<h2>${G.st0===0?"たまごが…！":"おや…？"}</h2>
-      <div class="lcd evo-lcd"><canvas id="evoLcd" width="64" height="40"></canvas></div>
-      <p id="evoMsg" style="margin:0;font-weight:800">${esc(m.name)}の ようすが…</p>
-      <div id="evoBtns" hidden style="display:flex;flex-direction:column;gap:10px;width:100%">${btns}</div>`);
-    Promise.all([sprOf(m,G.st0),sprOf(m,st)]).then(([a,b])=>evoAnim("evoLcd",a,b,()=>{
-      sWin();
-      const e=entryOf(m,st);
-      if (e.rar>=4) setTimeout(()=>beep([523,659,784,1046,1318],.12),500);
-      $("evoMsg").innerHTML = (G.st0===0 ? `うまれた！ ${e.name}だ！` : `${esc(m.name)}は 「${e.name}」に しんかした！`)+`<br>${rarChip(e.rar)}`;
-      $("evoBtns").hidden=false;
-    }));
-  } else {
-    overlay(`<h2>${okN} / ${SET} せいかい</h2>${monOf(m,st,110)}
-      <p style="margin:0;font-weight:800">+${G.gain} EXP　Lv.${G.lv0} → Lv.${m.lv}</p>
-      <p style="margin:0" class="muted">おなか ${pips(m.hunger)}　ごきげん ${pips(m.happy)}</p>${btns}`);
-  }
-  $("gMore").onclick=()=>startSet(G.kind);
-  $("gBack").onclick=()=>{ $("ov").hidden=true; growHome(); };
+function showEvo(m,fromNo,list,done){
+  const to=list[list.length-1], t=MONS[to-1];
+  const prev=m.chain[m.chain.length-2]||fromNo||m.chain[0];
+  const was=(m.name===t.name)?MONS[prev-1].name:m.name;   // なまえを つけていない ばあいは まえの しゅるいの なまえ
+  overlay(`<h2>おや…？</h2>
+    <div class="lcd evo-lcd"><canvas id="evoLcd" width="64" height="40"></canvas></div>
+    <p id="evoMsg" style="margin:0;font-weight:800">${esc(was)}の ようすが…</p>
+    <div id="evoBtns" hidden style="width:100%"></div>`);
+  Promise.all([sprite(prev),sprite(to)]).then(([a,b])=>evoAnim("evoLcd",a,b,()=>{
+    sWin(); lcdSp=b;
+    if (t.rar>=4) setTimeout(()=>beep([523,659,784,1046,1318],.12),500);
+    $("evoMsg").innerHTML=`${esc(was)}は 「${t.name}」に しんかした！<br>${rarChip(t.rar)}
+      <br><small class="muted">${STAGE_N[tierOf(to)-1]}に なった ・ シールちょうにも ふえたよ
+      <br>ここまで ${m.tries}もん がんばった ・ しんか ${m.chain.length-1}かいめ</small>`;
+    $("evoBtns").innerHTML=`<button class="btn main" id="evoOk" style="width:100%">やったー！</button>`;
+    $("evoBtns").hidden=false; $("evoOk").onclick=done;
+  }));
 }
 
-// ===================== モンスター たいせん（ふたりで交代） =====================
-// 自分の学年の問題に正解すると攻撃。進化が進むほど攻撃力が上がるが、HPは同じなので学年差・Lv差で一方的になりにくい
-const VS_HP=60, atkOf=m=>8+stageOf(m.lv)*2+entryOf(m,stageOf(m.lv)).rar;  // レア度も こうげき力に
-let V=null;
-function vsEntry(){
-  const ok=[5,3].every(g=>save.grow[g] && save.grow[g].lv>=2);
-  return `<div class="vsentry"><button class="btn" id="goVs" ${ok?"":"disabled"} style="${ok?"":"opacity:.5"}">ふたりで モンスター たいせん</button>
-    ${ok?"":`<small class="muted" style="text-align:center">ふたりとも たまごが かえると あそべるよ</small>`}</div>`;
-}
-const _openPick=openPick;
-openPick=function(){ _openPick(); let e=$("vsEntryBox"); if(!e){ e=document.createElement("div"); e.id="vsEntryBox"; $("gPick").firstElementChild.appendChild(e); } e.innerHTML=vsEntry(); const b=$("goVs"); if (b) b.onclick=startVs; };
-$("vsBackBtn").onclick=()=>{ clearTimeout(timer); openPick(); };
-
-function startVs(){
-  [5,3].forEach(g=>{ norm(g); decay(save.grow[g]); });
-  V={hp:{5:VS_HP,3:VS_HP}, turn:3, used:{5:new Set(),3:new Set()}, sp:{}, lock:true, ok:{5:0,3:0}};
-  show("sVs");
-  const n=names();
-  $("vsN5").textContent=`${save.grow[5].name}（${n[5]}）`; $("vsN3").textContent=`${save.grow[3].name}（${n[3]}）`;
-  Promise.all([5,3].map(g=>{ const m=save.grow[g]; return sprOf(m,stageOf(m.lv),28); })).then(([a,b])=>{
-    V.sp={5:a,3:b}; drawVs(); beep([523,659,784]); nextV();
-  });
-}
-function drawVs(o={}){
-  const ctx=$("vsLcd").getContext("2d"); clearLcd(ctx,64,40);
-  // 5年のモンスターは左、3年は右（右向きに反転して向かい合う）
-  const xs={5:2+(o.atk===5?6:0), 3:34-(o.atk===3?6:0)};
-  [5,3].forEach(g=>drawSp(ctx,V.sp[g],xs[g],8,{flip:g===5, inv:o.hit===g, fall:V.hp[g]<=0?10:0}));
-  ctx.fillStyle=LCDC.dark;
-  if (o.atk){ const from=o.atk===5?32:30, dir=o.atk===5?1:-1; for(let i=0;i<3;i++) ctx.fillRect(from+dir*i*3,20+(i%2),2,2); }
-  $("vsH5").style.width=(V.hp[5]/VS_HP*100)+"%"; $("vsH3").style.width=(V.hp[3]/VS_HP*100)+"%";
-}
-const VIDS={label:"vsQLabel",text:"vsQText",fb:"vsFb",ch:"vsChoices"};
-function nextV(){
-  const g=V.turn, n=names(); V.lock=false; V.t0=Date.now();
-  V.q = Math.random()<0.5 ? kanjiQ(g,V.used[g]) : gen(g);
-  $("vsTurn").className="turn p"+g;
-  $("vsTurn").innerHTML=`<span>${esc(n[g])} の こうげき</span><span>${esc(save.grow[g].name)}</span>`;
-  renderQ(V.q, VIDS, answerV);
-}
-function answerV(c,btn){
-  if (V.lock) return; V.lock=true;
-  const g=V.turn, foe=g===5?3:5, q=V.q, ok=String(c)===String(q.a), fast=(Date.now()-V.t0)/1000<8;
-  markChoices("vsChoices",q); kanjiBook(g,q,ok);
-  if (ok){
-    V.ok[g]++;
-    const dmg=atkOf(save.grow[g])+(fast?4:0);
-    V.hp[foe]=Math.max(0,V.hp[foe]-dmg); sOK();
-    drawVs({atk:g});
-    setTimeout(()=>{ drawVs({hit:foe}); beep([200,150],.1,"square"); const d=$("vsDmg"); d.textContent="-"+dmg; d.classList.remove("show"); void d.offsetWidth; d.classList.add("show"); },250);
-    setTimeout(()=>drawVs(),550);
-    $("vsFb").className="feedback ok"; $("vsFb").textContent=`せいかい！ ${dmg} ダメージ${fast?"（はやわざ）":""}`;
-  } else {
-    sNG(); btn.classList.add("ng");
-    $("vsFb").className="feedback ng"; $("vsFb").innerHTML=`こうげき しっぱい… こたえは ${fmt(q.a)}`;
-  }
-  persist();
-  timer=setTimeout(()=>{ V.hp[foe]<=0 ? endVs(g) : (V.turn=foe, nextV()); }, ok?1300:2300);
-}
-function endVs(win){
-  const lose=win===5?3:5, n=names(), msgs=[];
-  [[win,20],[lose,12]].forEach(([g,e])=>{   // 負けても EXP がもらえる
-    const m=save.grow[g], st0=stageOf(m.lv);
-    m.happy=Math.min(4,m.happy+1); gainExp(m,e);
-    applyEvo(m,st0).forEach(e=>msgs.push(`${esc(m.name)}が 「${e.name}」${starTxt(e.rar)} に しんかした！`));
-  });
-  persist(); sWin();
-  const w=save.grow[win];
-  overlay(`<h2>${esc(n[win])}の かち！</h2>${monOf(w,stageOf(w.lv),110)}
-    <p style="margin:0;font-weight:800">${esc(w.name)} +20 EXP ／ ${esc(save.grow[lose].name)} +12 EXP</p>
-    ${msgs.map(t=>`<p style="margin:0;color:var(--good);font-weight:800">${t}</p>`).join("")}
-    <button class="btn" id="vsAgain">もういちど たいせん</button><button class="ghost" id="vsHome">もどる</button>`);
-  $("vsAgain").onclick=()=>{ $("ov").hidden=true; startVs(); };
-  $("vsHome").onclick=()=>{ $("ov").hidden=true; openPick(); };
-}
-$("tM").onclick=()=>{
-  ["t5","t3"].forEach(t=>$(t).setAttribute("aria-pressed",false)); $("tM").setAttribute("aria-pressed",true);
-  $("dex").hidden=true; $("monDex").hidden=false; renderMonDex($("monDex"));
-  $("dexCount").textContent=`${DEX.filter(d=>save.seen[d.name]).length} / ${DEX.length}`;
-};
-// ===================== つうしん たいせん（Firebase Realtime Database） =====================
-// 設定は config.js の window.FIREBASE_CONFIG に書く。設定がない／読めない環境では このモードは非表示
-let fdb=null, O=null;
-function fbReady(){
-  if (fdb) return fdb;
-  try{ if (!window.FIREBASE_CONFIG || !window.firebase) return null; firebase.initializeApp(window.FIREBASE_CONFIG); fdb=firebase.database(); }catch(e){ fdb=null; }
-  return fdb;
-}
+// ===================== たいせん（べつの スマホと つうしん） =====================
+// Firebase の rooms/ を つかう。へやを つくった ほうが h、はいった ほうが g。
+// こうげき＝自分の学年の 問題に せいかい。ダメージは レベルと レア度で きまる
+const VS_HP=60;
+const atkOf=m=>8+Math.floor(m.lv/3)+MONS[m.no-1].rar*2;
 const foeOf=r=>r==="h"?"g":"h";
-function profileOf(g){ const m=save.grow[g], st=stageOf(m.lv); return {name:m.name, kid:names()[g], grade:g, fam:m.fam, st, br:brOf(m,st), lv:m.lv, atk:atkOf(m)}; }
+let O=null;
+function profileOf(){ const m=U().pal; return {name:m.name, kid:names()[cur], grade:cur, no:m.no, lv:m.lv, atk:atkOf(m)}; }
 function olView(id){ ["olLobby","olWait","olBattle"].forEach(x=>$(x).hidden = x!==id); }
-
-// もどるボタンの下に つうしん たいせんの 入口を追加
-const _openPick2=openPick;
-openPick=function(){
-  _openPick2();
-  const box=$("vsEntryBox"), mine=[5,3].filter(g=>save.grow[g] && save.grow[g].lv>=2), ready=!!(window.FIREBASE_CONFIG && window.firebase);
-  const d=document.createElement("div"); d.className="vsentry";
-  d.innerHTML=`<button class="btn" id="goOnline" ${ready&&mine.length?"":"disabled"} style="${ready&&mine.length?"":"opacity:.5"}">べつの スマホと つうしん たいせん</button>
-    ${!ready?`<small class="muted" style="text-align:center">つうしん たいせんは インターネット版（GitHub）で あそべるよ</small>`:!mine.length?`<small class="muted" style="text-align:center">たまごが かえると あそべるよ</small>`:""}`;
-  box.appendChild(d);
-  const b=$("goOnline"); if (b) b.onclick=openOnline;
-};
-
-function openOnline(){
+$("gVs").onclick=()=>{
   if (!fbReady()) return;
-  const mine=[5,3].filter(g=>save.grow[g] && save.grow[g].lv>=2);
-  O={g:mine[0], used:new Set()};
-  const n=names();
-  $("olWho").innerHTML=mine.map(g=>`<button class="b${g}" data-g="${g}">${esc(save.grow[g].name)}<br><small>${esc(n[g])} Lv.${save.grow[g].lv}</small></button>`).join("");
-  const mark=()=>$("olWho").querySelectorAll("button").forEach(b=>b.classList.toggle("sel", +b.dataset.g===O.g));
-  $("olWho").querySelectorAll("button").forEach(b=>b.onclick=()=>{ O.g=+b.dataset.g; beep([520]); mark(); });
-  mark(); $("olMsg").textContent=""; $("olCode").value="";
-  olView("olLobby"); show("sOnline");
-}
-
+  const m=U().pal, mon=MONS[m.no-1];
+  O={used:new Set()};
+  $("olMine").innerHTML=`<div class="prow">${monSvg(m.no,72)}
+    <div><span class="pname">${esc(m.name)}</span><span style="font-weight:800;font-size:.85rem">${mon.name} ・ Lv.${m.lv}</span>
+    <span class="carestats">こうげき力 ${atkOf(m)} ・ ${names()[cur]}の もんだいで たたかうよ</span></div></div>`;
+  $("olMsg").textContent=""; $("olCode").value="";
+  olView("olLobby"); show("vs");
+};
 $("olCreate").onclick=async()=>{
   const db=fbReady(); if (!db) return;
   $("olMsg").textContent="";
   try{
     let code, ref;
-    for (let i=0;i<5;i++){   // 使われていない コードを さがす（1時間より前の へやは 上書きOK）
+    for (let i=0;i<5;i++){      // つかわれていない コードを さがす（1時間より まえの へやは 上書きOK）
       code=String(rnd(1000,9999)); ref=db.ref("rooms/"+code);
-      const s=await ref.get(); const v=s.val();
+      const v=(await ref.get()).val();
       if (!v || Date.now()-(v.created||0)>3600e3) break;
     }
-    await ref.set({created:Date.now(), state:"wait", h:profileOf(O.g), hp:{h:VS_HP,g:VS_HP}, seq:0});
+    await ref.set({created:Date.now(), state:"wait", h:profileOf(), hp:{h:VS_HP,g:VS_HP}, seq:0});
     ref.onDisconnect().remove();
     Object.assign(O,{code, role:"h", ref});
-    $("olShow").textContent=code; olView("olWait");
-    listenRoom();
+    $("olShow").textContent=code; olView("olWait"); listenRoom();
   }catch(e){ $("olMsg").textContent="つながらなかったよ。インターネットを たしかめてね"; }
 };
 $("olJoin").onclick=async()=>{
   const db=fbReady(); if (!db) return;
   const code=$("olCode").value.replace(/\D/g,"");
   if (code.length!==4){ $("olMsg").textContent="4けたの コードを いれてね"; return; }
-  const ref=db.ref("rooms/"+code), me=profileOf(O.g);
+  const ref=db.ref("rooms/"+code), me=profileOf();
+  const giveUp=t=>{ ref.off(); O.ref=null; $("olMsg").textContent=t; };
   try{
+    Object.assign(O,{code, role:"g", ref}); listenRoom();  // さきに つないでから transaction（firstVal の せつめい を みてね）
+    const v=await firstVal(ref);
+    if (!v || v.state!=="wait") return giveUp("その へやは みつからないよ");
     const res=await ref.transaction(r=>{
-      if (!r || r.state!=="wait") return;           // へやが ない／もう はじまっている
+      if (!r || r.state!=="wait") return;                 // へやが ない／もう はじまっている
       r.g=me; r.state="battle"; r.seq=0;
-      r.turn = me.grade<r.h.grade ? "g" : r.h.grade<me.grade ? "h" : "g";   // 下の学年が先攻
+      r.turn = me.grade<r.h.grade ? "g" : r.h.grade<me.grade ? "h" : "g";   // 下の学年が せんこう
       return r;
     });
-    if (!res.committed){ $("olMsg").textContent="その へやは みつからないよ"; return; }
+    if (!res.committed) return giveUp("その へやは みつからないよ");
     ref.onDisconnect().update({gOff:true});
-    Object.assign(O,{code, role:"g", ref});
-    listenRoom();
-  }catch(e){ $("olMsg").textContent="つながらなかったよ。インターネットを たしかめてね"; }
+  }catch(e){ giveUp("つながらなかったよ。インターネットを たしかめてね"); }
 };
-$("olCancel").onclick=()=>leaveOnline(true);
-$("olBack").onclick=()=>{ leaveOnline(true); openPick(); };
-
-function leaveOnline(cancel){
+$("olCancel").onclick=()=>{ olLeave(true); olView("olLobby"); };
+$("olBack").onclick=()=>{ clearTimeout(timer); olLeave(true); show("grow"); };
+function olLeave(cancel){
   clearTimeout(timer);
-  if (O && O.ref){
-    O.ref.off();
-    const r=O.r;
-    if (O.role==="h" && (!r || r.state==="wait")) O.ref.remove();
-    else if (cancel && r && r.state==="battle") O.ref.update({[O.role+"Off"]:true});
-    O.ref=null;
-  }
+  if (!O || !O.ref) return;
+  O.ref.off(); const r=O.r;
+  if (O.role==="h" && (!r || r.state==="wait")) O.ref.remove();
+  else if (cancel && r && r.state==="battle") O.ref.update({[O.role+"Off"]:true});
+  O.ref=null;
 }
-
-function listenRoom(){
-  O.seenSeq=0; O.started=false; O.done=false;
-  O.ref.on("value", snap=>onRoom(snap.val()));
-}
+function listenRoom(){ O.seenSeq=0; O.started=false; O.done=false; O.ref.on("value",s=>onRoom(s.val())); }
 async function onRoom(r){
   if (!O) return;
   if (!r){ if (O.started && !O.done){ $("olTurn").className="turn wait"; $("olTurn").textContent="へやが なくなったよ"; } return; }
@@ -1352,15 +1508,16 @@ async function onRoom(r){
   const me=O.role, foe=foeOf(me);
   if (!O.started){
     O.started=true;
-    if (me==="h"){ O.ref.onDisconnect().cancel(); O.ref.onDisconnect().update({hOff:true}); beep([523,659,784]); }
+    if (me==="h"){ O.ref.onDisconnect().cancel(); O.ref.onDisconnect().update({hOff:true}); }
+    beep([523,659,784]);
     O.sp={};
-    [O.sp.me,O.sp.foe]=await Promise.all([r[me],r[foe]].map(p=>sprite(p.fam,p.st,p.br,28)));
+    [O.sp.me,O.sp.foe]=await Promise.all([r[me].no,r[foe].no].map(no=>sprite(no,28)));
     $("olN1").textContent=`${r[me].name}（${r[me].kid}）`; $("olN2").textContent=`${r[foe].name}（${r[foe].kid}）`;
     $("olN1").style.color=`var(--p${r[me].grade})`; $("olN2").style.color=`var(--p${r[foe].grade})`;
     $("olQLabel").textContent=""; $("olQText").textContent=""; $("olChoices").innerHTML=""; $("olFb").textContent="";
-    olView("olBattle"); show("sOnline");
+    olView("olBattle"); show("vs");
   }
-  // あたらしい こうげきが あれば アニメーション
+  // あいての こうげきが あれば アニメーション
   if (r.last && r.last.seq!==O.seenSeq){
     O.seenSeq=r.last.seq;
     animOnline(r.last.by===me?"me":"foe", r.last);
@@ -1372,20 +1529,20 @@ async function onRoom(r){
   if (r.state==="end"){ if (!O.done){ O.done=true; timer=setTimeout(()=>endOnline(r),1200); } return; }
   if (r[foe+"Off"]){ $("olTurn").className="turn wait"; $("olTurn").textContent="あいてが いなくなったよ"; $("olChoices").innerHTML=""; return; }
   if (r.turn===me){
-    if (!O.q){ timer=setTimeout(nextOQ, r.last?900:300); O.q="pending"; }
+    if (!O.q){ O.q="pending"; timer=setTimeout(nextOQ, r.last?900:300); }
   } else {
     $("olTurn").className="turn wait";
-    $("olTurn").textContent=`あいての ばん… ${r[foe].name}が かんがえ中`;
+    $("olTurn").innerHTML=`<span>あいての ばん…</span><span>${esc(r[foe].name)}が かんがえ中</span>`;
   }
 }
 function drawOnline(o={}){
-  if (!O || !O.sp) return;
-  const ctx=$("olLcd").getContext("2d"); clearLcd(ctx,64,40);
-  const xs={me:2+(o.atk==="me"?6:0), foe:34-(o.atk==="foe"?6:0)}, r=O.r, me=O.role, foe=foeOf(me);
+  if (!O || !O.sp || !O.r) return;
+  const ctx=$("olLcd").getContext("2d"), r=O.r, me=O.role, foe=foeOf(me);
+  clearLcd(ctx,64,40);
+  const xs={me:2+(o.atk==="me"?6:0), foe:34-(o.atk==="foe"?6:0)};
   drawSp(ctx,O.sp.me,xs.me,8,{flip:true, inv:o.hit==="me", fall:r.hp[me]<=0?10:0});
   drawSp(ctx,O.sp.foe,xs.foe,8,{inv:o.hit==="foe", fall:r.hp[foe]<=0?10:0});
-  ctx.fillStyle=LCDC.dark;
-  if (o.atk){ const from=o.atk==="me"?32:30, dir=o.atk==="me"?1:-1; for(let i=0;i<3;i++) ctx.fillRect(from+dir*i*3,20+(i%2),2,2); }
+  if (o.atk){ ctx.fillStyle=LCDC.dark; const from=o.atk==="me"?32:30, dir=o.atk==="me"?1:-1; for(let i=0;i<3;i++) ctx.fillRect(from+dir*i*3,20+(i%2),2,2); }
   $("olH1").style.width=(r.hp[me]/VS_HP*100)+"%"; $("olH2").style.width=(r.hp[foe]/VS_HP*100)+"%";
 }
 function animOnline(side,last){
@@ -1401,22 +1558,22 @@ function animOnline(side,last){
 }
 const OIDS={label:"olQLabel",text:"olQText",fb:"olFb",ch:"olChoices"};
 function nextOQ(){
-  if (!O || !O.r || O.r.turn!==O.role || O.r.state!=="battle") { if (O) O.q=null; return; }
-  O.q = Math.random()<0.5 ? kanjiQ(O.g,O.used) : gen(O.g);
+  if (!O || !O.r || O.r.turn!==O.role || O.r.state!=="battle"){ if (O) O.q=null; return; }
+  O.q = Math.random()<0.5 ? kanjiQ(cur,O.used) : gen(cur);
   O.lock=false; O.t0=Date.now();
-  $("olTurn").className="turn p"+O.g;
-  $("olTurn").textContent="あなたの こうげき！";
+  $("olTurn").className="turn p"+cur;
+  $("olTurn").innerHTML=`<span>あなたの こうげき！</span><span>${esc(U().pal.name)}</span>`;
   renderQ(O.q, OIDS, answerO);
 }
 async function answerO(c,btn){
   if (O.lock) return; O.lock=true;
-  const q=O.q, ok=String(c)===String(q.a), fast=(Date.now()-O.t0)/1000<8;
-  markChoices("olChoices",q); kanjiBook(O.g,q,ok);
-  const dmg=ok ? O.r[O.role].atk+(fast?4:0) : 0, me=O.role, foe=foeOf(me);
+  const q=O.q, u=U(), ok=String(c)===String(q.a), fast=(Date.now()-O.t0)/1000<8, me=O.role, foe=foeOf(me);
+  markChoices("olChoices",q); kanjiBook(cur,q,ok);
+  const dmg = ok ? O.r[me].atk+(fast?4:0) : 0;
+  palGain(u.pal,ok,fast,!!q.kanji);                        // たいせんでも けいけんちが はいる
   if (ok){ sOK(); $("olFb").className="feedback ok"; $("olFb").textContent=`せいかい！ ${dmg} ダメージ${fast?"（はやわざ）":""}`; }
   else { sNG(); btn.classList.add("ng"); $("olFb").className="feedback ng"; $("olFb").innerHTML=`こうげき しっぱい… こたえは ${fmt(q.a)}`; }
-  persist();
-  O.q=null;
+  persist(); O.q=null;
   await O.ref.transaction(r=>{
     if (!r || r.turn!==me || r.state!=="battle") return;
     r.seq=(r.seq||0)+1; r.last={seq:r.seq, by:me, ok, dmg};
@@ -1426,25 +1583,33 @@ async function answerO(c,btn){
   });
 }
 function endOnline(r){
-  const win=r.winner===O.role, m=save.grow[O.g], st0=stageOf(m.lv), foe=r[foeOf(O.role)];
+  const u=U(), m=u.pal, win=r.winner===O.role, foe=r[foeOf(O.role)], lv0=m.lv, no0=m.no;
   m.happy=Math.min(4,m.happy+1); gainExp(m, win?20:12);
-  const evo=applyEvo(m,st0); persist(); win?sWin():sNG();
-  if (O.role==="h") setTimeout(()=>{ try{ O && O.ref ? O.ref.remove() : 0; }catch(e){} }, 5000);
-  overlay(`<h2>${win?"かち！":"まけちゃった…"}</h2>${monOf(m,stageOf(m.lv),110)}
-    <p style="margin:0;font-weight:800">${esc(m.name)} +${win?20:12} EXP</p>
-    <p style="margin:0" class="muted">あいて：${esc(foe.name)}（${esc(foe.kid)}）</p>
-    ${evo.map(e=>`<p style="margin:0;color:var(--good);font-weight:800">「${e.name}」${starTxt(e.rar)} に しんかした！</p>`).join("")}
-    <button class="btn" id="olAgain">もういちど（へやを えらぶ）</button><button class="ghost" id="olHome">もどる</button>`);
-  $("olAgain").onclick=()=>{ $("ov").hidden=true; const ref=O.ref; if (ref) ref.off(); openOnline(); };
-  $("olHome").onclick=()=>{ $("ov").hidden=true; if (O.ref) O.ref.off(); openPick(); };
+  const evo=applyEvo(m,u); persist(); win?sWin():sNG();
+  if (O.role==="h") setTimeout(()=>{ try{ if (O && O.ref) O.ref.remove(); }catch(e){} },5000);
+  if (O.ref) O.ref.off();
+  const result=()=>{
+    overlay(`<h2>${win?"かち！":"まけちゃった…"}</h2>
+      <div class="bigstk">${monSvg(m.no,140)}<span class="nm">${esc(m.name)}</span></div>
+      <p style="margin:0;font-weight:800">+${win?20:12} EXP　${lvTxt(lv0,m)}</p>
+      <p style="margin:0" class="muted">あいて：${esc(foe.name)}（${esc(foe.kid)}）</p>
+      <button class="btn main" id="olAgain" style="width:100%">もういちど たいせん</button>
+      <button class="ghost" id="olHome">あいぼうの ところへ</button>`);
+    $("olAgain").onclick=()=>{ closeOv(); $("gVs").onclick(); };
+    $("olHome").onclick=()=>{ closeOv(); show("grow"); };
+  };
+  evo.length ? showEvo(m,no0,evo,result) : result();
 }
 
-// ---- 出題はんいの 設定 ----
+// ===================== せってい =====================
 (function(){
-  const box=$("unitList"), cur=()=>save.units3||UNITS3.filter(x=>x.def).map(x=>x.id);
-  box.innerHTML=UNITS3.map(u=>`<label><input type="checkbox" id="unit-${u.id}" value="${u.id}" ${cur().includes(u.id)?"checked":""}> ${u.name}</label>`).join("");
+  const n=names(); $("n5").value=n[5]; $("n3").value=n[3];
+  ["n5","n3"].forEach(id=>$(id).addEventListener("change",()=>{ save.names={5:$("n5").value.trim(),3:$("n3").value.trim()}; persist(); renderTitle(); }));
+  const box=$("unitList"), curU=()=>save.units3||UNITS3.filter(x=>x.def).map(x=>x.id);
+  box.innerHTML=UNITS3.map(u=>`<label><input type="checkbox" id="unit-${u.id}" value="${u.id}" ${curU().includes(u.id)?"checked":""}> ${u.name}</label>`).join("");
   box.addEventListener("change",()=>{ save.units3=[...box.querySelectorAll("input:checked")].map(i=>i.value); persist(); });
 })();
+show("title");
 </script>
 
 </body>

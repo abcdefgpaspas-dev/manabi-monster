@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>まなびモンスター あそびかたブック</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap">
+<style>
+/* 色と文字は ゲーム本体（src/manabi-monster.html）と そろえてある。
+   がめんの えは site/shots/*.png（tests/shots.cjs で じどう撮影） */
+:root{
+  --paper:#eef4f1; --grid:rgba(40,110,90,.10); --card:#fff; --ink:#1d2a30; --muted:#5a6d72; --line:#cfdcd6;
+  --p5:#e8590c; --p5-soft:#fff0e6; --p3:#1971c2; --p3-soft:#e7f1fc;
+  --good:#2b8a3e; --good-soft:#e6f7ea; --bad:#c92a2a; --coin:#f59f00; --coin-soft:#fff4d6;
+  --boss:#6741d9; --boss-soft:#f0ebff; --lcd-bg:#b4c0a0; --lcd-ink:#28301f;
+  --r1:#868e96; --r2:#2f9e44; --r3:#1c7ed6; --r4:#ae3ec9; --r5:#e8590c;
+  --display:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;
+  --body:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --paper:#16201d; --grid:rgba(120,200,170,.08); --card:#1e2a27; --ink:#eaf2ef; --muted:#9fb3ad; --line:#33443f;
+  --p5:#ff922b; --p5-soft:#3a2415; --p3:#4dabf7; --p3-soft:#152a3d; --coin:#ffc94d; --coin-soft:#3a2f12;
+  --good:#51cf66; --good-soft:#15331d; --bad:#ff6b6b; --boss:#9775fa; --boss-soft:#241a3d;
+  --r1:#adb5bd; --r2:#51cf66; --r3:#4dabf7; --r4:#da77f2; --r5:#ff922b;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#16201d; --grid:rgba(120,200,170,.08); --card:#1e2a27; --ink:#eaf2ef; --muted:#9fb3ad; --line:#33443f;
+  --p5:#ff922b; --p5-soft:#3a2415; --p3:#4dabf7; --p3-soft:#152a3d; --coin:#ffc94d; --coin-soft:#3a2f12;
+  --good:#51cf66; --good-soft:#15331d; --bad:#ff6b6b; --boss:#9775fa; --boss-soft:#241a3d;
+  --r1:#adb5bd; --r2:#51cf66; --r3:#4dabf7; --r4:#da77f2; --r5:#ff922b;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+img{max-width:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;
+  font-family:var(--body); font-size:17px; line-height:1.85; letter-spacing:.01em;
+}
+.wrap{
+  max-width:900px; margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:24px 56px;
+}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;line-height:1.45}
+p{margin:0}
+a{color:var(--p3)}
+
+/* ===== ひょうし ===== */
+.cover{display:grid;gap:14px;justify-items:center;text-align:center;padding-block:10px 24px}
+.cover h1{font-size:clamp(2rem,9vw,3.1rem)}
+.cover h1 span{color:var(--p5)}
+.cover .sub{color:var(--muted);font-size:.95rem;max-width:34em}
+.badge{display:inline-block;background:var(--coin-soft);border:2px solid var(--ink);border-radius:999px;
+  padding:3px 16px;font-weight:800;font-size:.85rem;box-shadow:0 3px 0 var(--ink)}
+.mons{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.mons svg{width:58px;height:58px}
+.covershots{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.covershots img{width:min(42vw,168px);border:3px solid var(--ink);border-radius:16px;box-shadow:0 5px 0 var(--ink);display:block}
+.covershots img:nth-child(1){transform:rotate(-3deg)}
+.covershots img:nth-child(2){transform:rotate(2.5deg)}
+
+/* ===== 3ステップ ===== */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:6px}
+.flowbox{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:14px;text-align:center;
+  display:grid;gap:4px;box-shadow:0 4px 0 var(--ink);min-width:0}
+.flowbox .big{font-family:var(--display);font-size:1.5rem}
+.flowbox small{color:var(--muted);font-weight:700}
+.f1 .big{color:var(--coin)} .f2 .big{color:var(--p5)} .f3 .big{color:var(--boss)}
+
+/* ===== もくじ ===== */
+.toc{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:16px 18px;display:grid;gap:6px;margin-top:22px}
+.toc h2{font-size:1rem}
+.toc ol{margin:0;padding-left:1.4em;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px 20px}
+.toc a{color:inherit;text-decoration:none;font-weight:700}
+.toc a:hover,.toc a:focus-visible{text-decoration:underline}
+
+/* ===== しょう ===== */
+section.ch{margin-top:38px;display:grid;gap:14px;--ch:var(--p3);--ch-soft:var(--p3-soft)}
+section.ch:nth-of-type(5n+2){--ch:var(--p5);--ch-soft:var(--p5-soft)}
+section.ch:nth-of-type(5n+3){--ch:var(--good);--ch-soft:var(--good-soft)}
+section.ch:nth-of-type(5n+4){--ch:var(--boss);--ch-soft:var(--boss-soft)}
+section.ch:nth-of-type(5n+5){--ch:var(--coin);--ch-soft:var(--coin-soft)}
+.chhead{display:flex;align-items:center;gap:12px}
+.num{flex:none;width:46px;height:46px;border-radius:15px;border:2px solid var(--ink);background:var(--ch-soft);color:var(--ch);
+  display:grid;place-items:center;font-family:var(--display);font-size:1.35rem;box-shadow:0 4px 0 var(--ink)}
+.chhead h2{font-size:clamp(1.15rem,5vw,1.55rem)}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:16px 18px;display:grid;gap:13px}
+
+/* ===== がめんの え ===== */
+/* 画像の たかさが ちがっても、キャプションの 行が そろうように 下ぞろえにする */
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;justify-items:center;align-items:stretch;margin-top:2px}
+figure.shot{margin:0;display:grid;grid-template-rows:1fr auto;gap:7px;justify-items:center;align-self:stretch;min-width:0}
+figure.shot img{width:100%;max-width:220px;display:block;align-self:end;background:var(--paper);
+  border:3px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink)}
+figure.shot figcaption{font-size:.82rem;line-height:1.6;color:var(--muted);font-weight:700;text-align:center;text-wrap:balance}
+figure.shot b{color:var(--ch)}
+.shots.one figure.shot img{max-width:260px}
+
+/* ===== てじゅん ===== */
+ol.steps{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:s}
+/* 番号は position:absolute で置く。grid にすると <b> や <span> が別のマスに入って1文字ずつ折れる */
+ol.steps li{counter-increment:s;position:relative;padding-left:40px;min-height:28px;min-width:0}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:3px;
+  background:var(--ch-soft);color:var(--ch);border:2px solid currentColor;
+  border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-weight:800;font-size:.85rem}
+ul.dots{margin:0;padding-left:1.25em;display:grid;gap:7px}
+ul.dots li{min-width:0}
+
+/* ===== こまかい パーツ ===== */
+.key{display:inline-block;background:var(--card);border:2px solid var(--ink);border-radius:10px;
+  padding:1px 9px;font-weight:800;font-size:.92em;white-space:nowrap;line-height:1.6}
+.coin{color:var(--coin);font-weight:800}
+.hl{background:linear-gradient(transparent 62%,var(--coin-soft) 62%);font-weight:800}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.95rem;min-width:300px}
+th,td{border:2px solid var(--line);padding:7px 10px;text-align:left}
+th{background:var(--ch-soft);font-weight:800;white-space:nowrap}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.rars{display:flex;flex-wrap:wrap;gap:6px}
+.rar{border:2px solid currentColor;border-radius:999px;padding:1px 11px;font-weight:800;font-size:.85rem}
+.rar1{color:var(--r1)}.rar2{color:var(--r2)}.rar3{color:var(--r3)}.rar4{color:var(--r4)}.rar5{color:var(--r5)}
+.lcd{background:var(--lcd-bg);color:var(--lcd-ink);border:2px solid var(--ink);border-radius:12px;
+  padding:10px 14px;font-weight:800;text-align:center}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mini{border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:6px;min-width:0}
+.mini h3{font-size:1rem}
+.u5{border-color:var(--p5);background:var(--p5-soft)}
+.u3{border-color:var(--p3);background:var(--p3-soft)}
+.note{border-left:6px solid var(--bad);background:var(--card);border-radius:0 14px 14px 0;padding:12px 16px;display:grid;gap:6px}
+.note b{color:var(--bad)}
+.ok{border-left-color:var(--good)} .ok b{color:var(--good)}
+/* しんかまでの みちのり */
+.road{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.stage{border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:4px;min-width:0;background:var(--card)}
+.stage.last{border-color:var(--boss)}
+.stage-no{font-size:.78rem;font-weight:800;color:var(--muted);letter-spacing:.08em}
+.stage-lv{font-family:var(--display);font-size:1.35rem;color:var(--p5);line-height:1.2}
+.stage.last .stage-lv{color:var(--boss)}
+.stage-when{font-size:.88rem;color:var(--muted);margin-top:2px}
+/* おうちの人へ */
+.parent{margin-top:44px;background:var(--card);border:2px dashed var(--line);border-radius:18px;padding:16px 18px;
+  font-size:.9rem;line-height:1.75;color:var(--muted);display:grid;gap:8px}
+.parent h2{font-size:1rem;color:var(--ink)}
+.parent code{background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:0 4px;font-size:.9em}
+footer{margin-top:28px;text-align:center;color:var(--muted);font-size:.82rem}
+@media print{
+  body{background:#fff;background-image:none;font-size:11pt;line-height:1.65}
+  .wrap{max-width:none;padding:0}
+  section.ch{break-inside:avoid;margin-top:16px}
+  figure.shot img{box-shadow:none;border-width:2px}
+  .num,.badge,.flowbox{box-shadow:none}
+  .toc{break-after:page}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <div class="mons" id="mons"></div>
+  <span class="badge">あそびかた ブック</span>
+  <h1>まなび<span>モンスター</span></h1>
+  <p class="sub">べんきょうで コインを あつめて、300しゅるいの モンスターシールを ゲット！<br>
+    そだてて しんかさせて、たいせんも できるよ。</p>
+  <div class="covershots">
+    <img src="shots/gacha-one.png" alt="ガチャで ウルトラレアの メラホーンが でた がめん">
+    <img src="shots/book.png" alt="シールちょうの がめん">
+  </div>
+</header>
+
+<div class="flow">
+  <div class="flowbox f1"><span class="big">とく</span><small>さんすう・かん字を 5もん</small></div>
+  <div class="flowbox f2"><span class="big">まわす</span><small>コインで ガチャ</small></div>
+  <div class="flowbox f3"><span class="big">そだてる</span><small>あいぼうが しんか！</small></div>
+</div>
+
+<nav class="toc">
+  <h2>もくじ</h2>
+  <ol>
+    <li><a href="#c1">どんな ゲーム？</a></li>
+    <li><a href="#c2">さいしょに やること</a></li>
+    <li><a href="#c3">べんきょうする</a></li>
+    <li><a href="#c4">ガチャを まわす</a></li>
+    <li><a href="#c5">シールちょう</a></li>
+    <li><a href="#c6">そだてる（あいぼう）</a></li>
+    <li><a href="#c7">しんか — いちばん うれしい しゅんかん</a></li>
+    <li><a href="#c8">たいせん</a></li>
+    <li><a href="#c9">こうかん</a></li>
+    <li><a href="#c10">こまったときは</a></li>
+  </ol>
+</nav>
+
+<section class="ch" id="c1">
+  <div class="chhead"><div class="num">1</div><h2>どんな ゲーム？</h2></div>
+  <div class="card">
+    <p>さんすうと かん字の もんだいを とくと <span class="coin">コイン</span>が もらえるよ。<br>
+      コインで ガチャを まわして、モンスターの シールを あつめよう。</p>
+    <ol class="steps">
+      <li>もんだいを とく → <span class="coin">コイン</span>が たまる</li>
+      <li>コインで <span class="key">ガチャ</span> → シールが でる</li>
+      <li>シールちょうに ふえていく → ぜんぶで <b>300しゅるい</b></li>
+      <li>すきな 1ひきを <b>あいぼう</b>に して そだてる → やがて <b>しんか</b>する</li>
+    </ol>
+    <div class="shots">
+      <figure class="shot"><img src="shots/title.png" alt="タイトルがめん"><figcaption><b>タイトル</b><br>じぶんの なまえを えらぶ</figcaption></figure>
+      <figure class="shot"><img src="shots/home.png" alt="ホームがめん"><figcaption><b>ホーム</b><br>ここから ぜんぶ えらべる</figcaption></figure>
+    </div>
+    <p class="lcd">まちがえても だいじょうぶ。<br>なんかいでも やりなおせるよ。</p>
+  </div>
+</section>
+
+<section class="ch" id="c2">
+  <div class="chhead"><div class="num">2</div><h2>さいしょに やること</h2></div>
+  <div class="card">
+    <ol class="steps">
+      <li>アプリを ひらくと、なまえの カードが 2まい でてくるよ</li>
+      <li><b>じぶんの なまえ</b>を タップする</li>
+      <li>ホームの がめんに なったら、じゅんびは おしまい！</li>
+    </ol>
+    <div class="two">
+      <div class="mini u5"><h3>5ねんせい</h3><p>5年の もんだいが でるよ</p></div>
+      <div class="mini u3"><h3>3ねんせい</h3><p>3年の もんだいが でるよ</p></div>
+    </div>
+    <div class="note">
+      <p><b>ちゅうい</b> じぶんの なまえを えらぶこと。<br>
+        まちがえて えらぶと、おねえちゃん（いもうと）の コインを つかってしまうよ。</p>
+    </div>
+    <p class="muted">1日に 1かい ひらくだけで <span class="coin">ログインボーナス +2コイン</span>！ まいにち ちょっとだけでも ひらこう。</p>
+  </div>
+</section>
+
+<section class="ch" id="c3">
+  <div class="chhead"><div class="num">3</div><h2>べんきょうする</h2></div>
+  <div class="card">
+    <p>ホームの <span class="key">べんきょうする</span>を おすと、もんだいが <b>5もん</b> でるよ。<br>
+      さんすう → かん字 → さんすう … と こうたいで でてくる。</p>
+    <div class="shots one">
+      <figure class="shot"><img src="shots/study.png" alt="べんきょうの がめん。もんだいと 4つの こたえが でている">
+        <figcaption>4つの なかから こたえを えらぶ。<br><b>はやく こたえると おまけが つくよ</b></figcaption></figure>
+    </div>
+    <div class="tbl">
+      <table>
+        <tr><th>できたこと</th><th>もらえる もの</th></tr>
+        <tr><td>1もん せいかい</td><td class="n"><span class="coin">+1 コイン</span> と けいけんち +10</td></tr>
+        <tr><td>8びょう いないに せいかい</td><td class="n">けいけんち <b>+5 おまけ</b>（はやおし）</td></tr>
+        <tr><td>5もん ぜんぶ せいかい</td><td class="n"><span class="coin">+2 コイン</span>（ぜんもん ボーナス）</td></tr>
+        <tr><td>まちがえた</td><td class="n">けいけんち +2（0じゃないよ）</td></tr>
+      </table>
+    </div>
+    <p>だから <b>5もん ぜんぶ せいかい</b>すると <span class="coin">7コイン</span>。<br>
+      けいけんちは <b>あいぼう</b>に はいるよ（6しょうを 見てね）。</p>
+    <div class="note ok">
+      <p><b>コツ</b> わからない もんだいは、よく 見て かんがえてから おそう。<br>
+        まちがえても けいけんちは もらえるから、とりあえず おしても いいよ。</p>
+    </div>
+  </div>
+</section>
+
+<section class="ch" id="c4">
+  <div class="chhead"><div class="num">4</div><h2>ガチャを まわす</h2></div>
+  <div class="card">
+    <div class="shots">
+      <figure class="shot"><img src="shots/gacha.png" alt="ガチャの がめん"><figcaption><b>①</b> ボタンを おす</figcaption></figure>
+      <figure class="shot"><img src="shots/gacha-caps.png" alt="カプセルが ならんだ がめん"><figcaption><b>②</b> カプセルを タップ！</figcaption></figure>
+      <figure class="shot"><img src="shots/gacha-result.png" alt="10れんの けっか"><figcaption><b>③</b> シールが でた！</figcaption></figure>
+    </div>
+    <div class="tbl">
+      <table>
+        <tr><th>まわしかた</th><th>いる コイン</th><th>もらえる シール</th></tr>
+        <tr><td><span class="key">1かい まわす</span></td><td class="n">5コイン</td><td>1まい</td></tr>
+        <tr><td><span class="key">10れん</span></td><td class="n">50コイン</td><td>10まい（<b>スーパーレア いじょうが 1まい かくてい</b>）</td></tr>
+      </table>
+    </div>
+    <p>でてくる シールの めずらしさは <b>5だんかい</b>。でる かくりつは こうなっているよ。</p>
+    <div class="tbl">
+      <table>
+        <tr><th>レアど</th><th>でる かくりつ</th><th>めやす</th></tr>
+        <tr><td><span class="rar rar1">ノーマル</span></td><td class="n">55%</td><td>2かいに 1かいくらい</td></tr>
+        <tr><td><span class="rar rar2">レア</span></td><td class="n">28%</td><td>4かいに 1かいくらい</td></tr>
+        <tr><td><span class="rar rar3">スーパーレア</span></td><td class="n">12%</td><td>8かいに 1かいくらい</td></tr>
+        <tr><td><span class="rar rar4">ウルトラレア</span></td><td class="n">4%</td><td>25かいに 1かいくらい</td></tr>
+        <tr><td><span class="rar rar5">げきレア</span></td><td class="n">1%</td><td>100かいに 1かいくらい</td></tr>
+      </table>
+    </div>
+    <div class="shots one">
+      <figure class="shot"><img src="shots/gacha-one.png" alt="ウルトラレアが でた がめん">
+        <figcaption>めずらしい シールが でると、がめんが <b>ピカッと 光る</b>よ</figcaption></figure>
+    </div>
+    <p class="muted">おなじ シールが でることも あるよ（ダブり）。ダブった シールは <b>こうかん</b>に つかえる（9しょう）。</p>
+  </div>
+</section>
+
+<section class="ch" id="c5">
+  <div class="chhead"><div class="num">5</div><h2>シールちょう</h2></div>
+  <div class="card">
+    <p>あつめた シールは <span class="key">シールちょう</span>で 見られるよ。ぜんぶで <b>300しゅるい</b>！</p>
+    <div class="shots one">
+      <figure class="shot"><img src="shots/book.png" alt="シールちょうの がめん。もっていない シールは かげに なっている">
+        <figcaption>もっていない シールは <b>くろい かげ</b>。<br>どんな すがたか、あけてからの おたのしみ</figcaption></figure>
+    </div>
+    <p>モンスターは <b>10こ の ぞくせい</b>に わかれているよ。<br>
+      ほのお・みず・くさ・でんき・こおり・いわ・かぜ・ひかり・やみ・ほし</p>
+    <ul class="dots">
+      <li>うえの タブで ぞくせいを きりかえられる</li>
+      <li>ダブった シールは なんまい もっているか かずが でる（×2 とか）</li>
+      <li>なまえの さいしょは ぞくせいで きまるよ（ほのお＝「メラ」、みず＝「アワ」、こおり＝「ヒエ」…）</li>
+    </ul>
+    <p class="muted">「ひかり」「やみ」「ほし」の 3つは <b>めずらしい ぞくせい</b>。レアどが 1つ あがるよ。</p>
+  </div>
+</section>
+
+<section class="ch" id="c6">
+  <div class="chhead"><div class="num">6</div><h2>そだてる（あいぼう）</h2></div>
+  <div class="card">
+    <p>ホームの <span class="key">そだてる</span>を おして、<span class="key">あいぼうを えらぶ</span>。<br>
+      シールちょうの なかから <b>すきな 1ひき</b>を あいぼうに できるよ。</p>
+    <div class="shots one">
+      <figure class="shot"><img src="shots/grow.png" alt="そだてるの がめん。けいたいゲームきの ような えきしょうに モンスターが いる">
+        <figcaption>けいたいゲームき みたいな がめん。<br><b>べんきょうすると レベルが あがる</b></figcaption></figure>
+    </div>
+    <h3>おせわの ボタン</h3>
+    <div class="tbl">
+      <table>
+        <tr><th>ボタン</th><th>すること</th><th>いる もの</th></tr>
+        <tr><td><span class="key">ごはん</span></td><td>おなかが ♥1 ふえる</td><td class="n">1コイン</td></tr>
+        <tr><td><span class="key">あそぶ</span></td><td>ごきげんが ♥1 ふえる</td><td class="n">ただ</td></tr>
+        <tr><td><span class="key">そうじ</span></td><td>うんちを ながす</td><td class="n">ただ</td></tr>
+      </table>
+    </div>
+    <div class="note">
+      <p><b>たいせつ</b> おなかと ごきげんは <b>4じかんごとに へっていく</b>。<br>
+        ほうっておくと うんちが たまって、もらえる けいけんちが <b>はんぶん</b>に なってしまうよ。<br>
+        1日に 1かいは 見に いってあげよう。</p>
+    </div>
+    <p class="muted">あいぼうは あとから <span class="key">あいぼうを かえる</span>で とりかえられるし、<span class="key">なまえを かえる</span>で すきな なまえも つけられる。<br>
+      まえの あいぼうに もどすと、レベルも そのまま のこっているよ。</p>
+  </div>
+</section>
+
+<section class="ch" id="c7">
+  <div class="chhead"><div class="num">7</div><h2>しんか — いちばん うれしい しゅんかん</h2></div>
+  <div class="card">
+    <p>あいぼうは <b>Lv.8・Lv.18・Lv.30</b>で <b>しんか</b>する。<br>
+      ぞくせいは そのままで、もっと つよい すがたに かわるよ。<br>
+      しんかした すがたは <b>シールちょうにも ふえる</b>！</p>
+    <div class="shots">
+      <figure class="shot"><img src="shots/grow-hot.png" alt="「からだが あつい…！」と でている がめん">
+        <figcaption><b>きざし</b><br>「からだが あつい…！」が でたら あと すこし</figcaption></figure>
+      <figure class="shot"><img src="shots/evo.png" alt="しんかの がめん。メラニャンが メラキーに しんかした">
+        <figcaption><b>しんか！</b><br>がめんが ピカピカ 光って すがたが かわる</figcaption></figure>
+    </div>
+    <div class="note">
+      <p><b>かんたんには しんかしないよ</b><br>
+        レベルが とどいただけでは しんかしない。<br>
+        <span class="hl">おなか ♥3 いじょう・ごきげん ♥3 いじょう・うんち 0</span><br>
+        ＝「ちゃんと おせわ できている」ことが ひつようなんだ。</p>
+    </div>
+    <h3>しんかの やりかた</h3>
+    <ol class="steps">
+      <li>べんきょうして レベルを あげる</li>
+      <li>レベルが とどくと、えきしょうに <b>「からだが あつい…！」</b>と でる</li>
+      <li><span class="key">ごはん</span>や <span class="key">そうじ</span>を して、げんきに してあげる</li>
+      <li>げんきに なった <b>その しゅんかん</b>に しんかする！</li>
+    </ol>
+    <p>この しらせは、ホームの「そだてる」と、べんきょうが おわった がめんにも でるよ。<br>
+      <b>「あと なんEXP で しんか」</b>も いつも でているから、ゴールを 見ながら すすめよう。</p>
+    <h3>しんかまでの みちのり</h3>
+    <div class="road">
+      <div class="stage">
+        <span class="stage-no">1かいめ</span>
+        <b class="stage-lv">Lv.8</b>
+        <span>ベビー → こども</span>
+        <span class="stage-when">べんきょう やく 7かい<br>（1日 1かいなら <b>1しゅうかん</b>）</span>
+      </div>
+      <div class="stage">
+        <span class="stage-no">2かいめ</span>
+        <b class="stage-lv">Lv.18</b>
+        <span>こども → おとな</span>
+        <span class="stage-when">べんきょう やく 31かい<br>（1日 1かいなら <b>1かげつ</b>）</span>
+      </div>
+      <div class="stage last">
+        <span class="stage-no">3かいめ</span>
+        <b class="stage-lv">Lv.30</b>
+        <span>おとな → <b>でんせつ</b></span>
+        <span class="stage-when">べんきょう やく 82かい<br>（1日 1かいなら <b>3かげつ</b>）</span>
+      </div>
+    </div>
+    <div class="note ok">
+      <p><b>ここが おもしろいところ</b><br>
+        しんか したあとの すがたは、<span class="hl">そだてかたで かわる</span>んだ。<br>
+        さんすうを おおく とくか、かん字を おおく とくか、せいかいが おおいか、ほうっておいたか — それで なる すがたが ちがうよ。<br>
+        おねえちゃんと いもうとで、おなじ モンスターから べつの すがたに なるかも！</p>
+    </div>
+  </div>
+</section>
+
+<section class="ch" id="c8">
+  <div class="chhead"><div class="num">8</div><h2>たいせん</h2></div>
+  <div class="card">
+    <p><span class="key">そだてる</span> → <span class="key">べつの スマホと たいせん</span>で、おともだちや きょうだいと たたかえるよ。</p>
+    <div class="shots one">
+      <figure class="shot"><img src="shots/vs.png" alt="たいせんの がめん。HPバーと もんだいが でている">
+        <figcaption>こうたいで もんだいが でる。<br><b>せいかいすると あいてに こうげき！</b></figcaption></figure>
+    </div>
+    <ol class="steps">
+      <li>どちらか 1人が <span class="key">へやを つくる</span>を おす</li>
+      <li><b>4けたの すうじ</b>が でるので、あいてに おしえる</li>
+      <li>あいては その すうじを 入れて <span class="key">はいる</span>を おす</li>
+      <li>こうたいで もんだいが でる。せいかいすると こうげき！</li>
+    </ol>
+    <div class="tbl">
+      <table>
+        <tr><th>きまり</th><th>ないよう</th></tr>
+        <tr><td>HP</td><td class="n">2人とも 60</td></tr>
+        <tr><td>こうげき</td><td>じぶんの 学年の もんだいが でる。せいかいで ダメージ、まちがいは 0</td></tr>
+        <tr><td>つよさ</td><td>レベルが たかい・レアどが たかい あいぼうほど つよい（はやく こたえると もっと つよい）</td></tr>
+        <tr><td>せんこう</td><td>学年が したの子（3ねんせい）から</td></tr>
+        <tr><td>かったら</td><td class="n">けいけんち +20</td></tr>
+        <tr><td>まけても</td><td class="n">けいけんち +12</td></tr>
+      </table>
+    </div>
+    <p class="muted">まけても けいけんちは もらえるから、どんどん たいせんしよう。ごきげんも +1 に なるよ。</p>
+  </div>
+</section>
+
+<section class="ch" id="c9">
+  <div class="chhead"><div class="num">9</div><h2>こうかん</h2></div>
+  <div class="card">
+    <p>ダブった シールは、ほかの人の シールと とりかえられるよ。</p>
+    <div class="shots one">
+      <figure class="shot"><img src="shots/trade.png" alt="きょうだい こうかんの がめん。2つの シールが ⇄ で ならんでいる">
+        <figcaption>おたがいに あげる シールを えらんで ⇄</figcaption></figure>
+    </div>
+    <div class="two">
+      <div class="mini">
+        <h3>きょうだいと こうかん</h3>
+        <p>おなじ スマホの なかで、おねえちゃん ↔ いもうと で とりかえる。<br>
+          おたがいに あげる シールを えらぶだけ。</p>
+      </div>
+      <div class="mini">
+        <h3>ともだちと こうかん</h3>
+        <p>べつの スマホの 人と とりかえる。<br>
+          <b>4けたの すうじ</b>を つかうのは たいせんと おなじ。</p>
+      </div>
+    </div>
+    <ol class="steps">
+      <li>1人が <span class="key">へやを つくる</span> → 4けたの すうじを あいてに おしえる</li>
+      <li>あいてが その すうじを 入れて <span class="key">はいる</span></li>
+      <li>おたがいに <b>あげる シール</b>を えらぶ</li>
+      <li>2人とも <span class="key">これで OK！</span>を おすと こうかん せいりつ！</li>
+    </ol>
+    <div class="note">
+      <p><b>ちゅうい</b> あげた シールは かえってこないよ。<br>
+        1まいしか もっていない シールは あげられないように なっているから、あんしんして。</p>
+    </div>
+  </div>
+</section>
+
+<section class="ch" id="c10">
+  <div class="chhead"><div class="num">10</div><h2>こまったときは</h2></div>
+  <div class="card">
+    <h3>コインが たりない</h3>
+    <ul class="dots">
+      <li>べんきょうを 1かい（5もん）すると、さいだい <span class="coin">7コイン</span> もらえるよ</li>
+      <li>1日 1かい ひらくだけで <span class="coin">+2コイン</span>（ログインボーナス）</li>
+    </ul>
+    <h3>あいぼうの ごきげんが わるい</h3>
+    <ul class="dots">
+      <li><span class="key">あそぶ</span>は コインが いらないから、なんかいでも おせるよ</li>
+      <li>うんちが あったら まず <span class="key">そうじ</span></li>
+    </ul>
+    <h3>しんか しない</h3>
+    <ul class="dots">
+      <li>レベルが たりているか 見てみよう（Lv.8・18・30）</li>
+      <li><b>おなか ♥3・ごきげん ♥3・うんち 0</b>に なっているか たしかめて</li>
+      <li>「からだが あつい…！」が でていたら、あとは おせわを するだけ！</li>
+    </ul>
+    <h3>たいせん・ともだち こうかんが できない</h3>
+    <ul class="dots">
+      <li>2人が <b>おなじ アドレス</b>の アプリを つかっていないと つながらないよ</li>
+      <li>すうじを 入れまちがえていないか たしかめて（4けた）</li>
+      <li>でんぱの いい ところで やってみよう</li>
+    </ul>
+    <h3>シールや コインが きえた！</h3>
+    <ul class="dots">
+      <li>シールと コインは <b>その スマホの なか</b>に ほぞんされているよ</li>
+      <li>べつの スマホで ひらくと、また さいしょから に なる（きえたわけじゃないよ）</li>
+      <li>おうちの人に そうだんしてね</li>
+    </ul>
+  </div>
+</section>
+
+<div class="parent">
+  <h2>おうちの人へ</h2>
+  <ul class="dots">
+    <li><b>画面の写真</b>：すべて実際のアプリの画面です（5年生のデータ例）。<code>tests/shots.cjs</code> で自動撮影 → <code>site/shots/</code> に保存。画面を変えたら撮り直してください。</li>
+    <li><b>データの置き場所</b>：コイン・シール・あいぼうは端末の localStorage に保存。アカウント不要・無料。別端末には引き継がれません。</li>
+    <li><b>iPhone の注意</b>：Safari で「ホーム画面に追加」して使ってください。追加せずに長期間開かないと、iOS がサイトのデータを消すことがあります。</li>
+    <li><b>出題範囲の設定</b>：タイトル画面の「おうちの人へ：せってい」から、名前の変更と、3年算数の単元のしぼり込みができます（東書3年2学期）。学校で習っていない単元は外せます。</li>
+    <li><b>しんかのペース</b>：しんかは意図的に遠くしてあります（Lv.8／18／30＋おせわの条件）。ペースを変えるときは <code>src/manabi-monster.html</code> の <code>EVO_LV</code> と <code>evoReady</code> の2か所です。</li>
+    <li><b>たいせん・ともだち交換</b>：インターネット版（GitHub Pages）でのみ使えます。同じURLのアプリを双方が開いている必要があります。</li>
+  </ul>
+</div>
+
+<footer>まなびモンスター あそびかたブック ／ 2026年10月</footer>
+</div>
+
+<script>
+// ひょうしの モンスター：かんたんな まる顔を 3びき ならべるだけ（ゲーム本体の えは つかわない）
+const faces=[
+  {body:"#e8590c",belly:"#fff0e6",dark:"#5c2708"},   // ほのお
+  {body:"#4dabf7",belly:"#e7f5ff",dark:"#10365c"},   // みず
+  {body:"#69db7c",belly:"#ebfbee",dark:"#14401f"},   // くさ
+];
+document.getElementById("mons").innerHTML = faces.map(f=>`
+<svg viewBox="0 0 48 48" role="img" aria-label="モンスター">
+  <ellipse cx="24" cy="44" rx="13" ry="3" fill="rgba(0,0,0,.12)"/>
+  <circle cx="24" cy="26" r="15" fill="${f.body}" stroke="${f.dark}" stroke-width="2.5"/>
+  <ellipse cx="24" cy="31" rx="8" ry="7" fill="${f.belly}"/>
+  <path d="M12 14 L16 22 L8 21 Z" fill="${f.body}" stroke="${f.dark}" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M36 14 L40 21 L32 22 Z" fill="${f.body}" stroke="${f.dark}" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="19" cy="23" r="2.4" fill="${f.dark}"/>
+  <circle cx="29" cy="23" r="2.4" fill="${f.dark}"/>
+  <circle cx="19.8" cy="22.2" r=".8" fill="#fff"/>
+  <circle cx="29.8" cy="22.2" r=".8" fill="#fff"/>
+  <path d="M21 28 q3 2.5 6 0" fill="none" stroke="${f.dark}" stroke-width="2" stroke-linecap="round"/>
+</svg>`).join("");
+</script>
+</body>
+</html>
