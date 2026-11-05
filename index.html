@@ -113,6 +113,19 @@ button:disabled{opacity:.45;cursor:default}
 .progress i{width:26px;height:6px;border-radius:3px;background:var(--line)}
 .progress i.ok{background:var(--good)} .progress i.ng{background:var(--bad)} .progress i.now{background:var(--ink)}
 
+/* けいさんスペース：タッチペンや ゆびで ひっ算を 書く ところ。算数の もんだいの ときだけ 出す */
+.memo{display:flex;flex-direction:column;gap:6px}
+.memo .mhead{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted);font-weight:800}
+.memo .mhead .sp{flex:1}
+.memo .tool{min-height:0;font-size:.78rem;padding:6px 11px;border-radius:12px;border:2px solid var(--line);
+  background:var(--card);color:var(--muted);box-shadow:none;font-weight:800}
+.memo .tool.on{border-color:var(--ink);color:var(--ink);background:var(--paper)}
+/* 方眼は CSS の背景。canvas を けしても ますめは のこる */
+.memo canvas{display:block;width:100%;height:clamp(140px,24vh,200px);touch-action:none;cursor:crosshair;
+  border:2px dashed var(--line);border-radius:16px;background-color:var(--card);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+
 /* レア度 */
 .rar{display:inline-block;font-size:.72rem;font-weight:800;border:2px solid currentColor;border-radius:999px;padding:1px 8px;width:max-content;white-space:nowrap}
 .rar1{color:var(--r1)} .rar2{color:var(--r2)} .rar3{color:var(--r3)} .rar4{color:var(--r4)} .rar5{color:var(--r5)}
@@ -290,6 +303,11 @@ button.stk{font-weight:inherit;cursor:pointer}
   <div class="qcard"><div class="qlabel" id="sQLabel"></div><div class="qtext" id="sQText"></div></div>
   <div class="choices" id="sChoices"></div>
   <div class="feedback" id="sFb"></div>
+  <div class="memo" id="sMemo" hidden>
+    <div class="mhead"><span>けいさんスペース</span><span class="sp"></span>
+      <button class="tool" id="mErase">けしゴム</button><button class="tool" id="mClear">ぜんぶ けす</button></div>
+    <canvas id="mPad"></canvas>
+  </div>
 </div></section>
 
 <!-- ===== ガチャ ===== -->
@@ -873,6 +891,50 @@ $("goGacha").onclick=()=>{ beep([440]); show("gacha"); };
 $("goBook").onclick=()=>{ beep([440]); show("book"); };
 $("goTrade").onclick=()=>{ beep([440]); openTrade(); };
 
+// ===================== けいさんスペース（タッチペン・ゆびで 書ける メモ） =====================
+// 算数の もんだいの ときだけ 出す。つぎの もんだいに いくと じどうで まっさらに なる
+const MEMO={pen:true, drawing:false, sawPen:false, last:[0,0]};
+function memoCtx(){ return $("mPad").getContext("2d"); }
+// canvas の 中身の 大きさを 画面に あわせる（dpr を かけないと ぼやける）
+function memoFit(){
+  const c=$("mPad"), r=c.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  const w=Math.round(r.width*dpr), h=Math.round(r.height*dpr);
+  if (!w || !h || (c.width===w && c.height===h)) return;   // 同じ大きさなら さわらない（さわると 消える）
+  c.width=w; c.height=h;
+  const x=c.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0); x.lineCap="round"; x.lineJoin="round";
+}
+function memoClear(){ const c=$("mPad"); memoCtx().clearRect(0,0,c.width,c.height); }
+function memoShow(on){ $("sMemo").hidden=!on; if (on){ memoFit(); memoClear(); } }
+function memoStyle(x){
+  if (MEMO.pen){ x.globalCompositeOperation="source-over"; x.lineWidth=2.6;
+    x.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim()||"#1d2a30"; }
+  else { x.globalCompositeOperation="destination-out"; x.lineWidth=24; x.strokeStyle="#000"; }
+}
+function memoInit(){
+  const c=$("mPad"), at=e=>{ const r=c.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; };
+  // ペンを つかい出したら、手のひらが あたっても 線を 引かない
+  const palm=e=>MEMO.sawPen && e.pointerType==="touch";
+  c.addEventListener("pointerdown",e=>{
+    if (e.pointerType==="pen") MEMO.sawPen=true;
+    if (palm(e)) return;
+    e.preventDefault(); c.setPointerCapture(e.pointerId); MEMO.drawing=true; MEMO.last=at(e);
+    const x=memoCtx(); memoStyle(x);
+    x.beginPath(); x.moveTo(MEMO.last[0],MEMO.last[1]); x.lineTo(MEMO.last[0]+.1,MEMO.last[1]); x.stroke();  // 点を うつ
+  });
+  c.addEventListener("pointermove",e=>{
+    if (!MEMO.drawing || palm(e)) return;
+    e.preventDefault(); const x=memoCtx(); memoStyle(x);
+    x.beginPath(); x.moveTo(MEMO.last[0],MEMO.last[1]);
+    for (const ev of (e.getCoalescedEvents ? e.getCoalescedEvents() : [e])){ MEMO.last=at(ev); x.lineTo(MEMO.last[0],MEMO.last[1]); }
+    x.stroke();                                           // こまかく つなぐと 線が なめらかに なる
+  });
+  const up=()=>{ MEMO.drawing=false; };
+  ["pointerup","pointercancel","pointerleave"].forEach(t=>c.addEventListener(t,up));
+  $("mClear").onclick=()=>memoClear();
+  $("mErase").onclick=()=>{ MEMO.pen=!MEMO.pen; $("mErase").classList.toggle("on",!MEMO.pen); };
+  addEventListener("resize",()=>{ if (!$("sMemo").hidden) memoFit(); });
+}
+
 // ===================== べんきょう（コインを あつめる） =====================
 let S=null;
 const SIDS={label:"sQLabel",text:"sQText",fb:"sFb",ch:"sChoices"};
@@ -882,6 +944,7 @@ function nextS(){
   S.q = S.i%2===1 ? kanjiQ(cur,S.used) : gen(cur);   // 算数 → 漢字 → 算数 … の じゅん
   $("sProg").innerHTML=Array.from({length:STUDY_N},(_,i)=>`<i class="${i<S.i?(S.res[i]?"ok":"ng"):i===S.i?"now":""}"></i>`).join("");
   renderQ(S.q,SIDS,answerS);
+  memoShow(!S.q.kanji);                              // 漢字の ときは いらないので しまう
 }
 function answerS(c,btn){
   if (S.lock) return; S.lock=true;
@@ -1609,6 +1672,7 @@ function endOnline(r){
   box.innerHTML=UNITS3.map(u=>`<label><input type="checkbox" id="unit-${u.id}" value="${u.id}" ${curU().includes(u.id)?"checked":""}> ${u.name}</label>`).join("");
   box.addEventListener("change",()=>{ save.units3=[...box.querySelectorAll("input:checked")].map(i=>i.value); persist(); });
 })();
+memoInit();
 show("title");
 </script>
 
