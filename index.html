@@ -256,7 +256,26 @@ button.stk{font-weight:inherit;cursor:pointer}
 .unitlist label{display:flex;gap:8px;align-items:center;font-weight:700;font-size:.92rem}
 .unitlist input{width:20px;height:20px;accent-color:var(--p3);flex:none}
 .names2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.names2 label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700}
+/* おうちの人の せってい（しゅつだい はんいの 編集） */
+.gtab{display:flex;gap:8px}
+.gt{flex:1;padding:8px;font-size:.85rem;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--muted);box-shadow:none;font-weight:800}
+.gt.on{border-color:var(--ink);color:var(--ink);background:var(--paper)}
+.setbody{display:flex;flex-direction:column;gap:9px}
+.setbody h4{margin:4px 0 0;font-size:.9rem;font-family:var(--body)}
+.setbody code{background:var(--paper);border-radius:5px;padding:1px 4px;font-size:.92em}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.82rem;font-weight:700;padding:4px 7px;border-radius:10px;border:2px solid var(--line);background:var(--card)}
+.chip .x,.qrow .x{cursor:pointer;color:var(--bad);font-weight:900;padding:0 2px;flex:none}
+.qlist{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+.qrow{display:flex;gap:8px;align-items:center;font-size:.82rem;border:2px solid var(--line);border-radius:10px;padding:5px 8px;background:var(--card)}
+.qrow span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addrow{display:flex;gap:6px;flex-wrap:wrap}
+.addrow input{flex:1;min-width:92px;font-family:var(--body);font-size:.9rem;font-weight:700;padding:8px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.addrow button{padding:8px 12px;font-size:.82rem;border-radius:10px;box-shadow:none}
+.setbody textarea{width:100%;min-height:88px;box-sizing:border-box;font-family:var(--body);font-size:.85rem;padding:8px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.onlym{display:flex;gap:8px;align-items:center;font-size:.85rem;font-weight:700}
+.onlym input{width:20px;height:20px;accent-color:var(--p5);flex:none}
+.names2 label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700;min-width:0}
 .names2 input{font-family:var(--body);font-size:1rem;font-weight:700;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -277,8 +296,8 @@ button.stk{font-weight:inherit;cursor:pointer}
       <label><span style="color:var(--p5)">5ねんせいの なまえ</span><input id="n5" maxlength="8"></label>
       <label><span style="color:var(--p3)">3ねんせいの なまえ</span><input id="n3" maxlength="8"></label>
     </div>
-    <p class="muted" style="margin:0;font-size:.85rem">3年の しゅつだい はんい（東書 3年2学期・はなまるスキル）。いま学校で やっている 単元に しぼれます。</p>
-    <div id="unitList" class="unitlist"></div>
+    <div class="gtab"><button class="gt on" data-g="5">5年の はんい</button><button class="gt" data-g="3">3年の はんい</button></div>
+    <div class="setbody" id="setBody"></div>
   </details>
 </div></section>
 
@@ -586,15 +605,82 @@ const GEN5 = [
       ch:makeChoices(ans,[b*h, ans+b, ans-h, (b+h)*2],()=>ans+rnd(-6,6))};
   },
 ];
-// おうちの人が えらんだ 単元から 出題（えらばれていなければ 2学期の全単元）
-function units3On(){ const on=UNITS3.filter(u=>(save.units3||UNITS3.filter(x=>x.def).map(x=>x.id)).includes(u.id)); return on.length?on:UNITS3.filter(u=>u.def); }
-const gen = g => g===5 ? pick(GEN5)() : pick(pick(units3On()).gens)();
+// 5年も 3年と 同じように 単元で しぼれるように、GEN5 を 単元の かたちに つつむ
+const UNITS5 = [
+  {id:"dec",  name:"小数の かけざん",    def:true, gens:[GEN5[0]]},
+  {id:"frac", name:"分数の たしざん",    def:true, gens:[GEN5[1]]},
+  {id:"pct",  name:"わりあい（百分率）", def:true, gens:[GEN5[2]]},
+  {id:"avg",  name:"へいきん",           def:true, gens:[GEN5[3]]},
+  {id:"area", name:"三角形の 面積",      def:true, gens:[GEN5[4]]},
+];
+const UNITS = {3:UNITS3, 5:UNITS5};
+// おうちの人が えらんだ 単元から 出題（えらばれていなければ さいしょから 入っている ぶん）
+function unitsOn(g){
+  const all=UNITS[g];
+  const sel=(save.units&&save.units[g]) || (g===3?save.units3:null) || all.filter(x=>x.def).map(x=>x.id);
+  const on=all.filter(u=>sel.includes(u.id));
+  return on.length?on:all.filter(u=>u.def);
+}
+
+// ===== おうちの人が じぶんで 入れた もんだい =====
+function myCalc(g){ return (save.calcAdd&&save.calcAdd[g])||[]; }
+function myKanji(g){ return (save.kanjiAdd&&save.kanjiAdd[g])||[]; }
+function onlyMine(g){ return !!(save.onlyMine&&save.onlyMine[g]); }
+// 「もんだい / こたえ / まちがい…」から 4たくの もんだいを 作る
+function calcToQ(it,g){
+  const a=String(it.a), num=/^-?\d+(\.\d+)?$/.test(a), n=Number(a);
+  const rd=v=>String(Math.round(v*100)/100);
+  const given=(it.ch||[]).map(String).filter(x=>x!==a).slice(0,3);
+  // まちがいが 書いてなければ、数字なら ちかい数、文字なら ほかの もんだいの こたえを かりる
+  const auto = num ? [rd(n+Math.max(1,Math.abs(n)*0.1)), rd(n-Math.max(1,Math.abs(n)*0.1)), rd(n*2), rd(n+1), rd(n-1)]
+                   : myCalc(g).map(x=>String(x.a)).filter(x=>x!==a);
+  const fill=()=> num ? rd(n+(Math.random()*6-3)*Math.max(1,Math.abs(n)*0.1)) : a+"…";
+  return {label:"じぶんの もんだい", q:it.q, a, ch:makeChoices(a, given.concat(shuffle(auto)), fill), small:String(it.q).length>14||a.length>5};
+}
+// 貼りつけた 文字を もんだいに する（1行1もん。タブ か カンマ区切り）
+function parseLines(text){
+  const out={kanji:[],calc:[],ng:0};
+  String(text).split(/\r?\n/).forEach(line=>{
+    const s=line.trim(); if (!s || s[0]==="#") return;
+    const c=(s.includes("\t")?s.split("\t"):s.split(/[,、，|｜]/)).map(v=>v.trim()).filter(v=>v!=="");
+    if (c.length<2){ out.ng++; return; }
+    if (/^(かんじ|漢字|kanji)$/i.test(c[0])){
+      if (c.length<3){ out.ng++; return; }
+      out.kanji.push([c[1],c[2]]);
+    } else {
+      const a=/^(さんすう|算数|calc)$/i.test(c[0]) ? c.slice(1) : c;
+      if (a.length<2){ out.ng++; return; }
+      out.calc.push({q:a[0], a:a[1], ch:a.slice(2)});
+    }
+  });
+  return out;
+}
+// いまの せっていを 同じ かたちの 文字に もどす（コピーして とっておける）
+function toLines(g){
+  return myKanji(g).map(([w,r])=>`かんじ\t${w}\t${r}`)
+    .concat(myCalc(g).map(it=>["さんすう",it.q,it.a].concat(it.ch||[]).join("\t"))).join("\n");
+}
+
+// 算数の もんだいを 1つ 作る。じぶんで 作った もんだいが あれば まぜる
+function gen(g){
+  const my=myCalc(g);
+  if (my.length && (onlyMine(g) || Math.random()<0.5)) return calcToQ(pick(my),g);
+  return pick(pick(unitsOn(g)).gens)();
+}
 
 
 const kid=(g,w)=>g+":"+w;
 // まちがえた漢字ほど出やすくする（重みつき抽選）
+// 出題する ことば ＝ もとの リスト − けしたもの ＋ 足したもの
+function kanjiList(g){
+  const off=new Set((save.kanjiOff&&save.kanjiOff[g])||[]), add=myKanji(g);
+  if (onlyMine(g) && add.length) return add.slice();
+  const l=[...KANJI[g].filter(([w])=>!off.has(w)), ...add];
+  return l.length ? l : KANJI[g];          // ぜんぶ けしたら もとに もどす（出題できなくなるため）
+}
 function pickKanji(g, used){
-  const pool = KANJI[g].filter(([w])=>!used.has(w));
+  let pool = kanjiList(g).filter(([w])=>!used.has(w));
+  if (!pool.length) pool = kanjiList(g);
   const weights = pool.map(([w])=>{ const id=kid(g,w); return 1 + 3*(save.miss[id]||0) + (save.caught[id]?0:2); });
   let r=Math.random()*weights.reduce((a,b)=>a+b,0);
   for (let i=0;i<pool.length;i++){ r-=weights[i]; if (r<=0) return pool[i]; }
@@ -603,8 +689,10 @@ function pickKanji(g, used){
 
 function kanjiQ(g,used){
   const [w,r]=pickKanji(g,used); used.add(w);
-  const others=shuffle(KANJI[g].filter(x=>x[1]!==r).map(x=>x[1]));
-  return {label:"かんじの よみかた", q:w, a:r, ch:shuffle([r,...others.slice(0,3)]), kanji:true, w};
+  let others=shuffle(kanjiList(g).filter(x=>x[1]!==r).map(x=>x[1]));
+  // ことばを へらしすぎて えらぶ ものが 足りないときは、もとの リストから かりる
+  if (others.length<3) others=others.concat(shuffle(KANJI[g].filter(x=>x[1]!==r).map(x=>x[1])));
+  return {label:"かんじの よみかた", q:w, a:r, ch:shuffle([r,...[...new Set(others)].slice(0,3)]), kanji:true, w};
 }
 // 問題を表示する共通関数（育成・対戦で使う）
 function renderQ(q, ids, onPick){
@@ -1664,15 +1752,89 @@ function endOnline(r){
   evo.length ? showEvo(m,no0,evo,result) : result();
 }
 
-// ===================== せってい =====================
+// ===================== せってい（おうちの人） =====================
+// しゅつだい はんいを 学年ごとに 見て、けす・ふやす・まとめて 貼りつける
+let setG = 5;                                             // いま ひらいている 学年
+function sv(key,g,val){ if(!save[key]) save[key]={}; save[key][g]=val; }
+function unitSel(g){ return (save.units&&save.units[g]) || (g===3?save.units3:null) || UNITS[g].filter(x=>x.def).map(x=>x.id); }
+function chipHtml(w,r,src){
+  return `<span class="chip"><b>${esc(w)}</b><span style="color:var(--muted)">${esc(r)}</span><span class="x" data-w="${esc(w)}" data-src="${src}">✕</span></span>`;
+}
+function renderSet(){
+  const g=setG, off=new Set((save.kanjiOff&&save.kanjiOff[g])||[]);
+  const defK=KANJI[g].filter(([w])=>!off.has(w)), addK=myKanji(g), my=myCalc(g), sel=unitSel(g);
+  document.querySelectorAll(".gt").forEach(b=>b.classList.toggle("on", Number(b.dataset.g)===g));
+  const uni=UNITS[g].map(u=>`<label><input type="checkbox" class="uchk" value="${u.id}" ${sel.includes(u.id)?"checked":""}> ${esc(u.name)}</label>`).join("");
+  const chips=[...defK.map(([w,r])=>chipHtml(w,r,"def")), ...addK.map(([w,r])=>chipHtml(w,r,"add"))].join("")
+    || `<span class="muted" style="font-size:.82rem">ことばが ありません</span>`;
+  const rows=my.map((it,i)=>`<div class="qrow"><span>${esc(it.q)}　→　<b>${esc(it.a)}</b></span><span class="x" data-ci="${i}">✕</span></div>`).join("")
+    || `<span class="muted" style="font-size:.82rem">まだ ありません</span>`;
+  $("setBody").innerHTML=`
+    <p class="muted" style="margin:0;font-size:.82rem">${g===3?"東書 3年2学期・はなまるスキル。":"5年は かりの 単元です。"}いま 学校で やっている ところに しぼれます。</p>
+    <div class="unitlist">${uni}</div>
+    <h4>かんじの ことば（${defK.length+addK.length}）</h4>
+    <div class="chips">${chips}</div>
+    ${off.size?`<button class="ghost" id="kBack" style="align-self:flex-start;font-size:.8rem;padding:6px 10px">けした ${off.size}こを もどす</button>`:""}
+    <div class="addrow"><input id="kW" placeholder="ことば（宿題）"><input id="kR" placeholder="よみ（しゅくだい）"><button class="btn" id="kAdd">ふやす</button></div>
+    <h4>じぶんで 作った もんだい（${my.length}）</h4>
+    <div class="qlist">${rows}</div>
+    <label class="onlym"><input type="checkbox" id="onlyM" ${onlyMine(g)?"checked":""}> じぶんの もんだいだけ 出す</label>
+    <h4>まとめて 入れる</h4>
+    <p class="muted" style="margin:0;font-size:.8rem">1行に 1もん。タブ か カンマで くぎります。<br>
+      かんじ → <code>かんじ,宿題,しゅくだい</code><br>
+      さんすう → <code>さんすう,25 × 4 =,100</code><br>
+      うしろに まちがいの こたえを 足すと、それを そのまま つかいます。</p>
+    <textarea id="paste" placeholder="かんじ,宿題,しゅくだい&#10;さんすう,25 × 4 =,100"></textarea>
+    <div class="addrow"><button class="btn" id="pAdd">貼りつけた ぶんを 入れる</button><button class="ghost" id="pOut">いまの ぶんを 書き出す</button></div>
+    <p class="muted" id="pMsg" style="margin:0;font-size:.82rem"></p>`;
+  bindSet();
+}
+function bindSet(){
+  const g=setG, body=$("setBody"), msg=t=>{ $("pMsg").textContent=t; };
+  body.querySelectorAll(".uchk").forEach(c=>c.onchange=()=>{
+    sv("units",g,[...body.querySelectorAll(".uchk:checked")].map(i=>i.value));
+    if (g===3) save.units3=save.units[3];                 // 前からの かたちも そろえておく
+    persist();
+  });
+  body.querySelectorAll(".chip .x").forEach(x=>x.onclick=()=>{
+    const w=x.dataset.w;
+    if (x.dataset.src==="add") sv("kanjiAdd",g,myKanji(g).filter(([a])=>a!==w));
+    else sv("kanjiOff",g,[...((save.kanjiOff&&save.kanjiOff[g])||[]),w]);
+    persist(); renderSet();
+  });
+  body.querySelectorAll(".qrow .x").forEach(x=>x.onclick=()=>{
+    const i=Number(x.dataset.ci);
+    sv("calcAdd",g,myCalc(g).filter((_,j)=>j!==i)); persist(); renderSet();
+  });
+  if ($("kBack")) $("kBack").onclick=()=>{ sv("kanjiOff",g,[]); persist(); renderSet(); };
+  $("kAdd").onclick=()=>{
+    const w=$("kW").value.trim(), r=$("kR").value.trim();
+    if (!w || !r){ msg("ことばと よみの りょうほうを 入れてください"); return; }
+    sv("kanjiAdd",g,myKanji(g).concat([[w,r]])); persist(); renderSet();
+    $("pMsg").textContent=`「${w}」を ふやしました`;
+  };
+  $("onlyM").onchange=()=>{ sv("onlyMine",g,$("onlyM").checked); persist(); };
+  $("pAdd").onclick=()=>{
+    const r=parseLines($("paste").value);
+    if (!r.kanji.length && !r.calc.length){ msg("入れられる 行が ありませんでした"); return; }
+    sv("kanjiAdd",g,myKanji(g).concat(r.kanji));
+    sv("calcAdd",g,myCalc(g).concat(r.calc));
+    persist(); renderSet();
+    $("pMsg").textContent=`かんじ ${r.kanji.length}こ／さんすう ${r.calc.length}こ 入れました`+(r.ng?`（${r.ng}行は よみとれず）`:"");
+  };
+  $("pOut").onclick=()=>{
+    const t=toLines(g);
+    $("paste").value = t || "";
+    $("pMsg").textContent = t ? "この 文字を コピーして とっておけます" : "書き出す ものが まだ ありません";
+    if (t){ $("paste").focus(); $("paste").select(); }
+  };
+}
 (function(){
   const n=names(); $("n5").value=n[5]; $("n3").value=n[3];
   ["n5","n3"].forEach(id=>$(id).addEventListener("change",()=>{ save.names={5:$("n5").value.trim(),3:$("n3").value.trim()}; persist(); renderTitle(); }));
-  const box=$("unitList"), curU=()=>save.units3||UNITS3.filter(x=>x.def).map(x=>x.id);
-  box.innerHTML=UNITS3.map(u=>`<label><input type="checkbox" id="unit-${u.id}" value="${u.id}" ${curU().includes(u.id)?"checked":""}> ${u.name}</label>`).join("");
-  box.addEventListener("change",()=>{ save.units3=[...box.querySelectorAll("input:checked")].map(i=>i.value); persist(); });
+  document.querySelectorAll(".gt").forEach(b=>b.onclick=()=>{ setG=Number(b.dataset.g); renderSet(); });
+  renderSet();
 })();
-memoInit();
 show("title");
 </script>
 
